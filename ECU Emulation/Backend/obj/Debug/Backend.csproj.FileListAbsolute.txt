@@ -1,6 +1,0 @@
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\bin\Debug\Backend.dll
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\bin\Debug\Backend.pdb
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\bin\Debug\Newtonsoft.Json.dll
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\bin\Debug\Newtonsoft.Json.xml
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\obj\Debug\Backend.dll
-C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Backend\obj\Debug\Backend.pdb
