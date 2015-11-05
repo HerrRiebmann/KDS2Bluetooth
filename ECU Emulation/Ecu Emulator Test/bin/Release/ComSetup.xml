@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<ComSetup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <BaudRate>10400</BaudRate>
+  <Parity>None</Parity>
+  <StopBits>One</StopBits>
+  <DataBits>8</DataBits>
+  <PortName>COM4</PortName>
+  <Handshake>None</Handshake>
+  <Encoding>ASCII</Encoding>
+  <RtsEnable>true</RtsEnable>
+  <TimeOutMs>0</TimeOutMs>
+  <DtrEnable>false</DtrEnable>
+</ComSetup>

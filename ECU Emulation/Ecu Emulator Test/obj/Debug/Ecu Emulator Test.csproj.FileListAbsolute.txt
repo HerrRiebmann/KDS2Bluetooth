@@ -1,0 +1,13 @@
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Ecu Emulator Test.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Ecu Emulator Test.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Backend.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\EcuEmulator.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\SerialComPort.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Backend.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\EcuEmulator.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\SerialComPort.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\obj\Debug\Ecu Emulator Test.csprojResolveAssemblyReference.cache
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\obj\Debug\Ecu Emulator Test.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Ecu Emulator Test\obj\Debug\Ecu Emulator Test.pdb

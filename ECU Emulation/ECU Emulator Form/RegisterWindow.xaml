@@ -1,0 +1,92 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Data="clr-namespace:EcuEmulator.Data;assembly=EcuEmulator"
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    xmlns:converter="clr-namespace:EcuEmulatorForm.Converter"
+    mc:Ignorable="d" x:Class="EcuEmulatorForm.RegisterWindow"
+        Title="RegisterWindow" Height="375" Width="800" Loaded="Window_Loaded" Icon="vspc-icon-AllSize.ico">
+    <Window.Resources>
+        <CollectionViewSource x:Key="registerListViewSource" d:DesignSource="{d:DesignInstance {x:Type Data:RegisterList}, CreateList=True}"/>
+        <ObjectDataProvider x:Key="dataFromEnum" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="Data:PidTypes"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <converter:ByteToHexConverter x:Key="ByteToHex" />
+        <converter:ByteArrayToHexConverter x:Key="ByteArrayToHex" />
+    </Window.Resources>
+    <Grid DataContext="{StaticResource registerListViewSource}">
+        <ListView x:Name="itemsListView" SelectionMode="Single" Margin="10,10,10,32" ItemsSource="{Binding}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn x:Name="descriptionColumn" Width="180" Header="Description">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="6,-1,-6,-1" Text="{Binding Description, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="modeColumn" Width="50" Header="Mode">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding Mode, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteToHex}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="parameterColumn" Width="70" Header="Parameter">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding Parameter, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteToHex}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="pidTypeColumn" Width="140" Header="Pid Type">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="cbPidType" Margin="-6,-1" SelectedItem="{Binding PidType, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" ItemsSource="{Binding Source={StaticResource dataFromEnum}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="responseMinColumn" Width="80" Header="Response Min">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding ResponseMin, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="responseMaxColumn" Width="80" Header="Response Max">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding ResponseMax, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="staticResponseColumn" Width="120" Header="Static Response">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding ResponseStaticValues, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteArrayToHex}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <!--<GridViewColumn x:Name="responseStepsColumn" Width="80" Header="Response Steps">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding ResponseSteps, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>-->
+                </GridView>
+            </ListView.View>
+            <ListView.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Control.HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Control.VerticalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        <Button x:Name="BtnNew" Content="New" HorizontalAlignment="Left" Margin="12,0,0,7.04" VerticalAlignment="Bottom" Width="75" Click="BtnNew_Click"/>
+        <Button x:Name="BtnDelete" Content="Delete" HorizontalAlignment="Left" Margin="92,0,0,7.04" VerticalAlignment="Bottom" Width="75" Click="BtnDelete_Click"/>
+    </Grid>
+</Window>

@@ -1,0 +1,9 @@
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\SerialComPort.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\SerialComPort.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\Backend.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\Backend.pdb
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\obj\Debug\Serial Com Port.csprojResolveAssemblyReference.cache
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\obj\Debug\SerialComPort.dll
+C:\Users\Thomas Rietschel\Documents\Visual Studio 2012\Projects\ECU Emulation\Serial Com Port\obj\Debug\SerialComPort.pdb

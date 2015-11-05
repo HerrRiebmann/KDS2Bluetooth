@@ -1,0 +1,1 @@
+{"BaudRate":"10400","Parity":"None","StopBits":"One","DataBits":"8","PortName":"COM4","Handshake":"None","Encoding":"ASCII","RtsEnable":true,"TimeOutMs":0,"DtrEnable":false}
