@@ -175,6 +175,8 @@ void keepAlive()
         //Error responded        
         ErrorAppeard();        
       }
+    //ToDo: Voltage, BT Connected, ECU Connected, Enginge Operating Hours, Meter above Sea
+    
     //ToDo: Display Stuff...
 //    lcd.setCursor(1, 0);
 //    lcd.print(str);

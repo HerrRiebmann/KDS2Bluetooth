@@ -206,6 +206,15 @@ void ConvertResult()
   int value = 0;
   switch(ecuResponse[1])
   {
+    case 0x04: //Throttle Position Sensor
+      //201 = 0% = idle, 405 = 100%
+      //((Value-Minimum) *100) / (Maximum - Minimum)
+      value = ecuResponse[2];
+      if(value >= 201)
+        value = ((value-201) *100) / (405 - 201);
+      ecuResponse[2] = value;
+      ecuResponse[3] = 0x00;
+      break;
     case 0x05: //Airpressure: From 2 byte to 1 byte:      
       ecuResponse[2] = ecuResponse[2] / 2;    
       //Ignore accuracy
@@ -239,12 +248,11 @@ void ConvertResult()
       ecuResponse[3] = 0x00;
     break;
     case 0x5B: //Throttle Pos. Sensor
-      //81 = 0%, 180 = idle, ?? = 100%
-
-      //???
+      //81 = 0% = idle, (?)189 = 100% //Not yet sure if max Value
+      //((Value-Minimum) *100) / (Maximum - Minimum)
       value = ecuResponse[2];
       if(value >= 81)
-        value -= 81;
+        value = ((value-81) *100) / (189 - 81);
       ecuResponse[2] = value;
     break;
     case  0x5F: //Voltage
