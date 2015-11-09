@@ -33,8 +33,8 @@ In my case KWP2000 (*ISO-14230*)
 * SOIC Board (*to solder L9637 SMD on it*)
 
 The L9637 converts the one wire K-Line bidirectional into a serial signal (Rx & Tx).
-The capacitor reduces the 12V (*or more while charging*) to 6V to supply the Arduino VIN. A PullUp-resistor is needed between
-power supply and K-Line.
+Connect Rx to Rx, Tx to Tx and VCC to 5V Output from Arduino. VCC, Gnd and K-Line to the Bike. A PullUp-resistor is needed between power supply (VCC) and K-Line!
+The capacitor reduces the 12V (*or more while charging*) to 6V to supply the Arduino VIN. 
 HC-06 is a slave Bluetooth device. If needed, you can use a HC-05 master.
 
 ##Software:
