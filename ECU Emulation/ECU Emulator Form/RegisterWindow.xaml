@@ -5,7 +5,7 @@
     xmlns:System="clr-namespace:System;assembly=mscorlib"
     xmlns:converter="clr-namespace:EcuEmulatorForm.Converter"
     mc:Ignorable="d" x:Class="EcuEmulatorForm.RegisterWindow"
-        Title="RegisterWindow" Height="375" Width="800" Loaded="Window_Loaded" Icon="vspc-icon-AllSize.ico">
+        Title="Register" Height="375" Width="800" Loaded="Window_Loaded" Icon="vspc-icon-AllSize.ico">
     <Window.Resources>
         <CollectionViewSource x:Key="registerListViewSource" d:DesignSource="{d:DesignInstance {x:Type Data:RegisterList}, CreateList=True}"/>
         <ObjectDataProvider x:Key="dataFromEnum" MethodName="GetValues"

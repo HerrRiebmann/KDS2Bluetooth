@@ -21,7 +21,7 @@ namespace EcuEmulator.Data
         PidList1to32 = 0,
         StarterSwitch = 2,
         ThrottleOpening = 4,
-        BarometricPressure = 5,
+        BarometricInletPressure = 5,
         EngineCoolantTemperature = 6,
         IntakeAirTemperature = 7,
         AtmosphericPressure = 8,

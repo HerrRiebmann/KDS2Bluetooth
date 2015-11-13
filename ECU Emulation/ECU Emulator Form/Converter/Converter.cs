@@ -71,7 +71,7 @@ namespace EcuEmulatorForm.Converter
         {
             if (value == null)
                 return string.Empty;
-            var byteString = ((byte[]) value).Aggregate(string.Empty, (current, e) => current + e.ToString("X").PadLeft(2, '0') + " ");
+            var byteString = ((byte[]) value).Aggregate(string.Empty, (current, e) => current + e.ToString("X2") + " ");
             if (byteString.EndsWith(" "))
                 byteString = byteString.Remove(byteString.Length - 1, 1);
 

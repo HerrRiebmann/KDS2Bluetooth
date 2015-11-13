@@ -245,8 +245,17 @@ namespace EcuEmulator
                         //   0 % "61 04 00 D8";
                         // 100 % "61 04 03 7f"
                         i = r.Next(register.ResponseMin, register.ResponseMax);
-                        responseValues += (i/100).ToString("X").PadLeft(2, '0').ToUpper();
-                        responseValues += " " + (i%100).ToString("X").PadLeft(2, '0').ToUpper();
+                        //responseValues += (i/100).ToString("X").PadLeft(2, '0').ToUpper();
+                        //responseValues += " " + (i%100).ToString("X").PadLeft(2, '0').ToUpper();
+                        //2 Byte:
+                        responseValues += i.ToString("X").PadLeft(4, '0').ToUpper().Insert(2," ");
+                        break;
+                    case PidTypes.BarometricInletPressure:
+                        i = r.Next(register.ResponseMin, register.ResponseMax);
+                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper().Insert(2, " ");
+                        responseValues += " ";
+                        i = r.Next(register.ResponseMin, register.ResponseMax);
+                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper().Insert(2, " ");
                         break;
                     case PidTypes.GearPosition:
                         // N "80 F1 11 03 61 0B 00 F1"
@@ -283,8 +292,15 @@ namespace EcuEmulator
                         if (register.ResponseMin + register.ResponseMax > 0)
                         {
                             i = r.Next(register.ResponseMin, register.ResponseMax);
-                            responseValues += (i/100).ToString("X").PadLeft(2, '0').ToUpper();
-                            responseValues += " " + (i%100).ToString("X").PadLeft(2, '0').ToUpper();
+                            if (i > 256)
+                            {
+                                responseValues += (i/100).ToString("X").PadLeft(2, '0').ToUpper();
+                                responseValues += " " + (i%100).ToString("X").PadLeft(2, '0').ToUpper();
+                            }
+                            else
+                            {
+                                responseValues += i.ToString("X").PadLeft(2, '0').ToUpper();
+                            }
                         }
                         break;
                 }
@@ -569,14 +585,15 @@ namespace EcuEmulator
             list.Items.Add(new Register(PidTypes.PidList129toX, 0x21, 0x80, "Supported PIDs 128-XXX", new byte[] { 0x20, 0x00, 0x00, 0x21 }));
 
             list.Items.Add(new Register(PidTypes.StarterSwitch, 0x21, 0x02, "Starter Switch", 0, 1, 1));
-            list.Items.Add(new Register(PidTypes.ThrottleOpening, 0x21, 0x04, "Throttle Pos. Sensor", 216, 3127, 100));
-            list.Items.Add(new Register(PidTypes.BarometricPressure, 0x21, 0x05, "Air Pressure", new byte[]{0x7F, 0x80})); //? variable 2 Byte value
+            list.Items.Add(new Register(PidTypes.ThrottleOpening, 0x21, 0x04, "Throttle Pos. Sensor", 201, 405, 1));
+            list.Items.Add(new Register(PidTypes.BarometricInletPressure, 0x21, 0x05, "Intake Air Pressure", 161, 210, 1)); //2 Byte value Double precision
             list.Items.Add(new Register(PidTypes.EngineCoolantTemperature, 0x21, 0x06, "Water Temperature", 50, 120, 1));
             list.Items.Add(new Register(PidTypes.IntakeAirTemperature, 0x21, 0x07, "Intake Air Temperature", -20, 45, 1));
             //list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", 0, 100, 1));
-            list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", new byte[] {0xCB, 0x00}));
+            //ToDo: dynamic
+            list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", 200,210,1));//206 / 2 = kPa = 38 Meter above NN
             list.Items.Add(new Register(PidTypes.RotationsPerMinute, 0x21, 0x09, "Rotations per minute", 1000, 13500, 1));
-            list.Items.Add(new Register(PidTypes.BatteryVoltage, 0x21, 0x0A, "Battery Voltage", 100, 200, 1));
+            list.Items.Add(new Register(PidTypes.BatteryVoltage, 0x21, 0x0A, "Battery Voltage", 155, 185, 1));//12 - 14,5 V
             list.Items.Add(new Register(PidTypes.GearPosition, 0x21, 0x0B, "Gear", 0, 6, 1));
             list.Items.Add(new Register(PidTypes.Speed, 0x21, 0x0C, "Speedometer", 0, 240, 1));
 
@@ -586,10 +603,10 @@ namespace EcuEmulator
             //Total operating Hours between: 39h 54min 6sec - 71h 8min 54sec
             list.Items.Add(new Register(PidTypes.TotalOperatingHours, 0x21, 0x44, "Total Operating Hours", 143646, 256134, 1));
 
-            list.Items.Add(new Register(PidTypes.SubThrottleValveOperatingAngle, 0x21, 0x5B, "Sub-throttle valve operating angle", 0, 100, 1));
-            list.Items.Add(new Register(PidTypes.VehicleDownSensorVoltage, 0x21, 0x5E, "Vehicle-down sensor voltage", 200, 220, 1));
-            list.Items.Add(new Register(PidTypes.InternalControlVoltage2, 0x21, 0x5F, "Internal control #2 Voltage", 100, 200, 1));
-            list.Items.Add(new Register(PidTypes.InternalControlVoltage3, 0x21, 0x61, "Internal control #3 Voltage", 100, 200, 1));
+            list.Items.Add(new Register(PidTypes.SubThrottleValveOperatingAngle, 0x21, 0x5B, "Sub-throttle valve operating angle", 81, 189, 1)); //Max unknown
+            list.Items.Add(new Register(PidTypes.VehicleDownSensorVoltage, 0x21, 0x5E, "Vehicle-down sensor voltage", 200, 220, 1)); //Active unknown
+            list.Items.Add(new Register(PidTypes.InternalControlVoltage2, 0x21, 0x5F, "Internal control #2 Voltage", 155, 186, 1));
+            list.Items.Add(new Register(PidTypes.InternalControlVoltage3, 0x21, 0x61, "Internal control #3 Voltage", new byte[] { 0x00}));
             list.Items.Add(new Register(PidTypes.EmergencyStop, 0x21, 0x62, "Emergency Stop", new byte[]{0x00, 0x00}));
             list.Items.Add(new Register(PidTypes.FuelCutMode, 0x21, 0x6A, "Fuel cut Mode (coasting/enginebreaking)", 0, 1, 1));
             list.Items.Add(new Register(PidTypes.EngineStartMode, 0x21, 0x6B, "Engine starting mode", 0, 1, 1));

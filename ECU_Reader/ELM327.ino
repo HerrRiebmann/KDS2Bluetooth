@@ -101,10 +101,12 @@ bool CheckPID()
       translatedPID = 0x08; //Atmospheric Pressure
     break;    
     case 0x42: //Internal Control Voltage 2 Byte
-      translatedPID = 0x5F;
+      //translatedPID = 0x5F;
+      //Battery Voltage
+      translatedPID = 0x0A;
     break;
     case 0x45: //Relative Throttle Position 1 Byte
-      translatedPID = 0x5B;      //???
+      translatedPID = 0x5B;
     break;    
     default:
       translatedPID = 0x00;
@@ -209,7 +211,8 @@ void ConvertResult()
     case 0x04: //Throttle Position Sensor
       //201 = 0% = idle, 405 = 100%
       //((Value-Minimum) *100) / (Maximum - Minimum)
-      value = ecuResponse[2];
+      value = ecuResponse[2] * 100;
+      value += ecuResponse[3];
       if(value >= 201)
         value = ((value-201) *100) / (405 - 201);
       ecuResponse[2] = value;
@@ -219,17 +222,17 @@ void ConvertResult()
       ecuResponse[2] = ecuResponse[2] / 2;    
       //Ignore accuracy
       ecuResponse[3] = 0x00;      
-      break;
-    case 0x08:
-      //Pressure in kPa
-      ecuResponse[2] = ecuResponse[2] /2;
-    break;
+      break;    
     case 0x06: //Temp
     case 0x07:      
       value = ecuResponse[2] -48;
       value /= 1.6;      
       value += 40;
       ecuResponse[2] = value;
+    break;
+    case 0x08:
+      //Pressure in kPa
+      ecuResponse[2] = ecuResponse[2] /2;
     break;
     case 0x09: //RPM
       value = ecuResponse[2] *100;
@@ -253,11 +256,16 @@ void ConvertResult()
       value = ecuResponse[2];
       if(value >= 81)
         value = ((value-81) *100) / (189 - 81);
+        //OBD: A*100/255
+        value = value /100 * 255;
       ecuResponse[2] = value;
     break;
     case  0x5F: //Voltage
     //153 = 12 V = Factor 12,75
       value = ecuResponse[2] / 12.75;
+      //OBD II
+      //((A*256)+B)/1000
+      //2 Byte      
     break;
   }
 }
