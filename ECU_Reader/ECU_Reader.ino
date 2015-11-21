@@ -14,12 +14,13 @@ bool bluetoothConnected = false;
 #define K_IN 0  // K Input  Line - RX (0) on Arduino
 // Timings
 #define MAXSENDTIME 2000 // 2 second timeout on KDS comms.
-const uint32_t ISORequestByteDelay = 10;
-const uint32_t ISORequestDelay = 40; // Time between requests.
+const uint8_t ISORequestByteDelay = 10;
+const uint8_t ISORequestDelay = 40; // Time between requests.
 // Source and destination adresses, ECU (0x11) & Arduino (0xF1)
 const uint8_t ECUaddr = 0x11;
 const uint8_t MyAddr = 0xF1;
 bool ECUconnected = false;
+//ToDo: Save only important parts!!!
 uint8_t ecuResponse[12];
 uint32_t lastKresponse;
 //-----------------------------//
@@ -34,6 +35,7 @@ bool memory = false;
 const char elmVersion[11] = {'E', 'L', 'M', '3', '2', '7', ' ','v','1','.','4'};
 uint8_t lastPID = 0x00;
 uint8_t translatedPID = 0x0B;
+//ToDo: Reduce!!!
 char elmRequest[23]; //Max.: 80 11 F1 02 21 06 AB \r
 int counter = 0;
 //-----------------------------//
@@ -43,8 +45,17 @@ int counter = 0;
 
 //-----------------------------//
 // ##       LCD 128x64        ## //
-
+//#include <SPI.h>
+//#include <Wire.h>
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
+//
+//#define OLED_RESET 4
+//Adafruit_SSD1306 display(OLED_RESET);
 //-----------------------------//
+
+char gear = 'N';
+uint8_t voltage = 125;
 
 //-----------------------------//
 // ##   Bluetooth   Setup   ## //
@@ -78,18 +89,33 @@ void SetupKLine()
 //-----------------------------//
 void setupLcd()
 {
-  return;
-//  lcd.setCursor(2,0);
-//  lcd.print("Kawsaki Z750r");
-//  lcd.setCursor(2,1);
-//  lcd.print("Black Edition");
-//  delay(1000);
-//  ClearDisplay(false);
-//  lcd.setCursor(0,0);
-//  lcd.print("Hallo, Thomas!");
-//  delay(1000);
-//  ClearDisplay(true);    
-//  lcd.print("N123456");
+//  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+//  //China Clone :)
+//  //display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
+//  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x64)
+//  // init done
+//  
+//  
+//  // Show image buffer on the display hardware.
+//  // Since the buffer is intialized with an Adafruit splashscreen
+//  // internally, this will display the splashscreen.
+//  display.clearDisplay();
+//  //ToDo: overwrite Splashscreen with Kawasaki Logo!
+//  //display.display();
+//  //delay(500);
+//
+//  display.setTextSize(2);
+//  display.setTextColor(WHITE);
+//  display.setCursor(0,0);
+//  display.println(" Kawasaki");
+//  display.println("   Z750r");
+//  display.setTextColor(BLACK, WHITE); // 'inverted' text
+//  display.println("  Black  ");  
+//  display.println(" Edition ");  
+//  display.display();
+//  delay(2000);
+//  display.clearDisplay();
+//  display.display();
 }
 
 void setup()
@@ -117,8 +143,6 @@ void loop()
     {
       // sobald die verbindung zur ECU steht, geht die BOARD LED auf pin13 an, und zeigt den status
       digitalWrite(BOARD_LED, HIGH);
-//      lcd.setCursor(13, 1);
-//      lcd.print("ECU");
     }    
   }
   
@@ -126,9 +150,8 @@ void loop()
   //Or on idle...
   //Or last Response is older then 1 Second
   if(ECUconnected)
-  {
-    checkBluetooth();
-    if(!bluetoothConnected) 
+  {    
+    if(!checkBluetooth()) 
       keepAlive();
     else
       if(checkIdle())
@@ -137,20 +160,14 @@ void loop()
   else
   {
     digitalWrite(BOARD_LED, LOW);
-//    lcd.setCursor(13, 1);
-//    lcd.print("   ");      
   }
 }
 
-void checkBluetooth()
+bool checkBluetooth()
 {
     if(bluetoothConnected)
       bluetoothConnected = ((millis() - lastBTrequest) < 1000);
-//    lcd.setCursor(15, 0);
-//    if(bluetoothConnected)      
-//      lcd.write((byte)0);
-//    else
-//    lcd.print(" ");
+    return bluetoothConnected;
 }
 
 bool checkIdle()
@@ -161,24 +178,29 @@ bool checkIdle()
 void keepAlive()
 { 
   if(ECUconnected)
-  { 
-    String str;
+  {     
+    //Gear
     if(processRequest(0x0B))
       if(ecuResponse[2] == 0x00)
-        str = "N";
+        gear = 'N';
       else    
-        str = String(ecuResponse[2]);
-
-      //Error (Unconnected)
-      if(ecuResponse[0] == 0x7F && ecuResponse[1] == 0x21 && ecuResponse[2] == 0x10)
-      {
-        //Error responded        
-        ErrorAppeard();        
-      }
-    //ToDo: Voltage, BT Connected, ECU Connected, Enginge Operating Hours, Meter above Sea
+        gear = String(ecuResponse[2])[0];
+        
+    //Voltage    
+//    if(processRequest(0x0A))
+//      voltage = ecuResponse[2];
+      
+    //Error (Unconnected)
+    if(ecuResponse[0] == 0x7F && ecuResponse[1] == 0x21 && ecuResponse[2] == 0x10)
+    {
+      //Error responded        
+      ErrorAppeard();        
+      return;
+    }
+    //ToDo: Voltage, BT Connected, ECU Connected, Engine Operating Hours, Meter above Sea
     
     //ToDo: Display Stuff...
-//    lcd.setCursor(1, 0);
-//    lcd.print(str);
+    drawDisplay();
   }
 }
+

@@ -252,10 +252,10 @@ namespace EcuEmulator
                         break;
                     case PidTypes.BarometricInletPressure:
                         i = r.Next(register.ResponseMin, register.ResponseMax);
-                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper().Insert(2, " ");
+                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper();
                         responseValues += " ";
                         i = r.Next(register.ResponseMin, register.ResponseMax);
-                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper().Insert(2, " ");
+                        responseValues += i.ToString("X").PadLeft(2, '0').ToUpper();
                         break;
                     case PidTypes.GearPosition:
                         // N "80 F1 11 03 61 0B 00 F1"

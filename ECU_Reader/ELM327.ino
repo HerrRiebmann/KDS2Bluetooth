@@ -254,10 +254,15 @@ void ConvertResult()
       //81 = 0% = idle, (?)189 = 100% //Not yet sure if max Value
       //((Value-Minimum) *100) / (Maximum - Minimum)
       value = ecuResponse[2];
-      if(value >= 81)
-        value = ((value-81) *100) / (189 - 81);
-        //OBD: A*100/255
-        value = value /100 * 255;
+      //ToDo: Dynamically resizing
+      //Dirty Fix->
+      if(value < 81)
+        value = 81;
+      if(value > 189)
+        value = 189;
+      value = ((value-81) *100) / (189 - 81);
+      //OBD: A*100/255
+      value = value /100 * 255;
       ecuResponse[2] = value;
     break;
     case  0x5F: //Voltage
@@ -279,13 +284,17 @@ bool ReceivePIDs()
       //Engine Coolant Temp | Intake Pressure | RPM | Speed | Intake Air Temp | Throttle | PIDs 33-64
       //00011000000110111000000000000001
       //181B8001
+      //Ignore EngineLoad, AirFlowRate
       if(spaces)
-        BT.write("41 00 18 1B 80 01");
+        //BT.write("41 00 18 1B 80 01");
+        BT.write("41 00 08 1A 80 01");
       else
-        BT.write("4100181B8001");
+      //81A8001
+        //BT.write("4100181B8001");
+        BT.write("4100081A8001");
     break;
     case '2':
-      //PIDs 65-96
+      //PIDs 32-64
       if(spaces)
         BT.write("41 20 00 00 00 01");
       else
