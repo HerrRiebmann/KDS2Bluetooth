@@ -79,7 +79,7 @@ bool CheckPID()
     case 0x05: //Engine Coolant Temperature 1 Byte - OK
       translatedPID = 0x06;
     break;
-    case 0x10: //MAF 2 Byte - OK [Nicht garmin] 
+    case 0x10: //MAF 2 Byte - OK [Not supported by garmin]
       translatedPID = 0x05;  //MAF is nearly the same like Intake Air Pressure
     break;
     case 0x11: //Throttle Position 1 Byte - OK
@@ -172,7 +172,7 @@ bool sendPID(uint8_t pid)
       else
         elmResponse[responseCounter++] = 4;
     }
-    //ServiceID
+    //ServiceID (OBD2: 61, KDS: 41)
     elmResponse[responseCounter++] = 0x41;    
     
     //requested PID (not translated!!!)
@@ -215,37 +215,56 @@ void ConvertResult()
       value += ecuResponse[3];
       if(value >= 201)
         value = ((value-201) *100) / (405 - 201);
+      else
+        value = 0;
+      //ToDo: Adjust "405" Max value
+      if(value > 100)
+        value = 100;
       ecuResponse[2] = value;
       ecuResponse[3] = 0x00;
       break;
-    case 0x05: //Airpressure: From 2 byte to 1 byte:      
-      ecuResponse[2] = ecuResponse[2] / 2;    
+    case 0x05: //Airpressure: From 2 byte to 1 byte:    
+      if(ecuResponse[2] >= 2)
+        ecuResponse[2] = ecuResponse[2] / 2;    
       //Ignore accuracy
       ecuResponse[3] = 0x00;      
       break;    
     case 0x06: //Temp
-    case 0x07:      
-      value = ecuResponse[2] -48;
-      value /= 1.6;      
-      value += 40;
+    case 0x07:
+      //Don´t drive when it´s freezing ;)
+      if(ecuResponse[2] >= 48)
+      {
+        value = ecuResponse[2] -48;
+        value /= 1.6;      
+        value += 40;
+      }
+      else
+        value = 40;
       ecuResponse[2] = value;
     break;
     case 0x08:
       //Pressure in kPa
-      ecuResponse[2] = ecuResponse[2] /2;
+      if(ecuResponse[2] >= 2)
+        ecuResponse[2] = ecuResponse[2] /2;
+      else
+        ecuResponse[2] = 200; //0 Meters above Sea level (100 kPa)
     break;
     case 0x09: //RPM
       value = ecuResponse[2] *100;
       value += ecuResponse[3];
       value *= 4;
       ecuResponse[3] = value % 100;
-      ecuResponse[2] = (value - ecuResponse[3]) / 256;
+      value = (value - ecuResponse[3]);
+      if(value >= 256)
+        ecuResponse[2] = value / 256;
+      else
+        ecuResponse[2] = 0x00;
     break;
     case 0x0C: //Speed    
       //(A*100+B) / 2
       value = ecuResponse[2] *100;
       value += ecuResponse[3];    
-      if(value > 0)
+      if(value >= 2)
         value /= 2;    
       ecuResponse[2] = value;   
       ecuResponse[3] = 0x00;
@@ -253,20 +272,24 @@ void ConvertResult()
     case 0x5B: //Throttle Pos. Sensor
       //81 = 0% = idle, (?)189 = 100% //Not yet sure if max Value
       //((Value-Minimum) *100) / (Maximum - Minimum)
-      value = ecuResponse[2];
-      //ToDo: Dynamically resizing
+      value = ecuResponse[2];      
       //Dirty Fix->
       if(value < 81)
         value = 81;
-      if(value > 189)
-        value = 189;
-      value = ((value-81) *100) / (189 - 81);
+      if(value > ThrottlePosMax)
+      {
+        ThrottlePosMax = value;
+        EEPROM.write(0, value);
+      }
+      value = ((value-81) *100) / (ThrottlePosMax - 81);
       //OBD: A*100/255
-      value = value /100 * 255;
+      if(value > 0)
+        value = value /100 * 255;
       ecuResponse[2] = value;
     break;
     case  0x5F: //Voltage
     //153 = 12 V = Factor 12,75
+    if(value > 0)
       value = ecuResponse[2] / 12.75;
       //OBD II
       //((A*256)+B)/1000
@@ -294,7 +317,6 @@ bool ReceivePIDs()
         BT.write("4100081A8001");
     break;
     case '2':
-      //PIDs 32-64
       if(spaces)
         BT.write("41 20 00 00 00 01");
       else

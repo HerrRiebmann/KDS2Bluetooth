@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <SoftwareSerial.h>
 
 //-----------------------------//
@@ -23,6 +24,7 @@ bool ECUconnected = false;
 //ToDo: Save only important parts!!!
 uint8_t ecuResponse[12];
 uint32_t lastKresponse;
+uint8_t ThrottlePosMax = 189;
 //-----------------------------//
 
 //-----------------------------//
@@ -82,13 +84,18 @@ void SetupKLine()
   // status led aus
   digitalWrite(BOARD_LED, LOW);
   lastKresponse = 0;
+
+  ThrottlePosMax = EEPROM.read(0);
 }
 
 //-----------------------------//
-// ##      LCD     Setup    ## //
+// ##   LCD 128x64 Setup    ## //
 //-----------------------------//
 void setupLcd()
 {
+  //Mode: 2IC
+  //SDA - A5
+  //SCL - A4  
 //  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
 //  //China Clone :)
 //  //display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
