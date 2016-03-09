@@ -206,18 +206,27 @@ bool sendPID(uint8_t pid)
 void ConvertResult()
 {
   int value = 0;
+  uint8_t minimum;
   switch(ecuResponse[1])
   {
     case 0x04: //Throttle Position Sensor
       //201 = 0% = idle, 405 = 100%
+      minimum = 201;
       //((Value-Minimum) *100) / (Maximum - Minimum)
       value = ecuResponse[2] * 100;
       value += ecuResponse[3];
-      if(value >= 201)
-        value = ((value-201) *100) / (405 - 201);
+
+      if(value > ThrottlePosMax)
+      {
+        ThrottlePosMax = value;
+        EEPROM.write(0, value);
+      }
+      
+      if(value >= minimum)
+        value = ((value-minimum) *100) / (405 - minimum);
       else
         value = 0;
-      //ToDo: Adjust "405" Max value
+      //Shouldn´t happen...
       if(value > 100)
         value = 100;
       ecuResponse[2] = value;
@@ -231,7 +240,7 @@ void ConvertResult()
       break;    
     case 0x06: //Temp
     case 0x07:
-      //Don´t drive when it´s freezing ;)
+      //Don´t drive when it´s freezing ;)      
       if(ecuResponse[2] >= 48)
       {
         value = ecuResponse[2] -48;
@@ -269,19 +278,20 @@ void ConvertResult()
       ecuResponse[2] = value;   
       ecuResponse[3] = 0x00;
     break;
-    case 0x5B: //Throttle Pos. Sensor
-      //81 = 0% = idle, (?)189 = 100% //Not yet sure if max Value
-      //((Value-Minimum) *100) / (Maximum - Minimum)
+    case 0x5B: //Sub Throttle valve Sensor
+      //81 = 0% = idle, (?)189 = 100% //will be adjusted dynamically
+      minimum = 81;
       value = ecuResponse[2];      
       //Dirty Fix->
-      if(value < 81)
-        value = 81;
-      if(value > ThrottlePosMax)
+      if(value < minimum)
+        value = minimum;
+      if(value > SubThrottleMax)
       {
-        ThrottlePosMax = value;
-        EEPROM.write(0, value);
+        SubThrottleMax = value;
+        EEPROM.write(1, value);
       }
-      value = ((value-81) *100) / (ThrottlePosMax - 81);
+      //((Value-Minimum) *100) / (Maximum - Minimum)
+      value = ((value-minimum) *100) / (ThrottlePosMax - minimum);
       //OBD: A*100/255
       if(value > 0)
         value = value /100 * 255;

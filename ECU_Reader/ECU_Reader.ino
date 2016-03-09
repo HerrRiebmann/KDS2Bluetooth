@@ -21,10 +21,11 @@ const uint8_t ISORequestDelay = 40; // Time between requests.
 const uint8_t ECUaddr = 0x11;
 const uint8_t MyAddr = 0xF1;
 bool ECUconnected = false;
-//ToDo: Save only important parts!!!
+//ToDo: Save only important parts to reduce size!!!
 uint8_t ecuResponse[12];
 uint32_t lastKresponse;
-uint8_t ThrottlePosMax = 189;
+uint8_t ThrottlePosMax = 405;
+uint8_t SubThrottleMax = 189;
 //-----------------------------//
 
 //-----------------------------//
@@ -86,6 +87,7 @@ void SetupKLine()
   lastKresponse = 0;
 
   ThrottlePosMax = EEPROM.read(0);
+  SubThrottleMax = EEPROM.read(1);
 }
 
 //-----------------------------//
@@ -186,16 +188,16 @@ void keepAlive()
 { 
   if(ECUconnected)
   {     
-    //Gear
+    //Check Gear to keep KDS alive
     if(processRequest(0x0B))
       if(ecuResponse[2] == 0x00)
         gear = 'N';
       else    
         gear = String(ecuResponse[2])[0];
-        
+       
     //Voltage    
-//    if(processRequest(0x0A))
-//      voltage = ecuResponse[2];
+    //if(processRequest(0x0A))
+    //  voltage = ecuResponse[2];
       
     //Error (Unconnected)
     if(ecuResponse[0] == 0x7F && ecuResponse[1] == 0x21 && ecuResponse[2] == 0x10)
@@ -204,9 +206,9 @@ void keepAlive()
       ErrorAppeard();        
       return;
     }
-    //ToDo: Voltage, BT Connected, ECU Connected, Engine Operating Hours, Meter above Sea
+    //ToDo: Voltage, BT Connected, ECU Connected, Engine Operating Hours, Meter above Sea, ect.
     
-    //ToDo: Display Stuff...
+    //Optional: Display Stuff...
     drawDisplay();
   }
 }

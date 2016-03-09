@@ -41,9 +41,6 @@ void SniffEcu()
   }
 }
 
-int throttleMax = 0x00;
-int subThrottleMax = 0x00;
-
 void SniffKnownCmds()
 {
    BT.println("Known Sniffer Started!");
@@ -55,10 +52,7 @@ void SniffKnownCmds()
   {
   //Throttle
   SniffCommand(0x04);
-  int val = ecuResponse[2] *100;
-  val += ecuResponse[3];
-  if(val > throttleMax)
-    throttleMax = val;
+  
   //Intake Air Pressure
   //SniffCommand(0x05);
   
@@ -78,9 +72,7 @@ void SniffKnownCmds()
   //SniffCommand(0x0C);
   
   //Sub Throttle
-  SniffCommand(0x5B);
-  if(ecuResponse[2] > subThrottleMax)
-    subThrottleMax = ecuResponse[2];
+  SniffCommand(0x5B); 
   
   //Internal C2
   //SniffCommand(0x5F); 
@@ -96,9 +88,9 @@ void SniffKnownCmds()
   //BT.println(i);
   }
   BT.print("Throttle: ");
-  BT.println(throttleMax);
+  BT.println(ThrottlePosMax);
   BT.print("SubThrottleValve: ");
-  BT.println(subThrottleMax);
+  BT.println(SubThrottleMax);
 }
 
 bool SniffCommand(uint8_t pid)
