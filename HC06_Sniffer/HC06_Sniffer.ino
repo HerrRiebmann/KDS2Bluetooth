@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-SoftwareSerial BT(10, 11); 
+SoftwareSerial BT(11, 10); 
 // creates a "virtual" serial port/UART
 // connect BT module TX to D10
 // connect BT module RX to D11
@@ -14,6 +14,8 @@ bool lineFeed = true;
 //EnableEcho
 bool echo = false;
 bool memory = false;
+
+bool EcuConnected = false;
 
 char elmVersion[11] = {'E', 'L', 'M', '3', '2', '7', ' ','v','1','.','4'};
 //Incoming Data (Commands)
@@ -36,50 +38,76 @@ void loop()
 {
   if(BT.available())
   {    
-    ReadInput();
+    ReadInput();    
   }
 }
 
 bool ReadInput()
-{
-  //ToDo:
-  //Translate chars to HEX
-  //While(available) Read:
-  char input = BT.read();
-  //Ignore Spaces:
-  if(input == ' ') 
-    return false;
-  cmds[counter++] = input;
-  //Debug Output
-//  Serial.print(counter);
-//  Serial.print(": ");
-//  Serial.println(input);
-  
-  //Carriage Return
-  if(input == 0x0D)
+{  
+  while(BT.available())
   {
-    //Repeat last command when only \r appears
-    if(counter == 1)
-      Serial.println("Repeat last Command");
+    char input = BT.read();      
+    //Ignore incoming Spaces:
+    if(input == ' ') 
+      continue;
+        
+    cmds[counter++] = input;
+    delay(3);
+    //Carriage Return
+    if(input == 0x0D)
+      break;    
+  }
       
+  if(counter == 0)
+    return false;
+
+  
+  //Repeat last command when only \r appears
+  if(counter == 1 && cmds[counter] == 0x0D)
+  {
+    Serial.println("Repeat last Command");
+    ClearBuffer();
+    return true;
+  }
+
+  if(cmds[0] == 'A')
     if(CheckAT())
       return true;
+  if(cmds[0] == 'S')
+    if(CheckST())
+      return true;
+  if(!EcuConnected)
+  {
+    Serial.println("Connect ECU");
+    delay(50);
+    BT.println("SEARCHING...");
+    EcuConnected = true;
+  }
+  if(cmds[0] == '0' && cmds[1] == '1' && cmds[3] == '0')
     if(ReceivePIDs())
       return true; 
+  if(cmds[0] == '0'  && cmds[1] == '1')
     if(CheckPID())     
       return true;
+  if(counter >= 4)  
+  if(cmds[0] == '0')  
+    if(CheckService())
+      return true;
 
-      //Unknown Command:
-      Serial.println("Unknown: ");
-      for(int i = 0; i <= counter; i++)      
-        Serial.print(cmds[i]);
-      Serial.println();
-  }
-  
-  //Linefeed - Ignore (Sometimes sent after CarriageReturn)
-  if(input == 0x0A)
+  //Linefeed -> Ignore (Sometimes sent after CarriageReturn)
+  if(cmds[counter] == 0x0A)
+  {
+    Serial.println("Linefeed...");
     ClearBuffer();
-
+    return true;
+  }
+    //Unknown Command:
+    Serial.println("Unknown: ");
+    for(int i = 0; i <= counter; i++)      
+      Serial.print(cmds[i]);
+    Serial.println();
+    ClearBuffer();  
+  
   //ToDo:
   //If last Request older then 20 Seconds: Answer with "?"
   
@@ -163,6 +191,18 @@ bool CheckPID()
         response = "48"; //72%
         Serial.println("Relative Throttle Pos");
       break;
+//Neu      
+      case 0x4F: //Maximum values 4 Byte
+        request = 0x00;
+        response = "00000000"; //
+        Serial.println("Maximum values Fuel, Oxy, Voltage");
+      break;
+      case 0x50: //Maximum values Air flow rate 4 Byte
+        request = 0x00;
+        response = "00000000"; //
+        Serial.println("Maximum values Air Flow");
+      break;
+//Neu      
       default:
         Serial.println("Unknown PID");
         request = 0x00;
@@ -171,11 +211,13 @@ bool CheckPID()
 
     if(response == "")
     {
+      Serial.print(pid);
+      Serial.println(" No Data");
       BT.write("NO DATA");    
     }
     else
     {
-      //Valid + Sender + ECU-Adress + ? + PID
+      //Valid + Sender + ECU-Adress + Length + PID
       if(headerInfo)
         BT.write("80 F1 11 03");
       BT.write("41");
@@ -203,22 +245,20 @@ bool CheckPID()
     SendNewLine();
     SendPrompt();
     //SendNewLine();
-    ClearBuffer(); 
-
-    //Create Test Data
-    if(f++ >= 3)
-      f = 0;
+    ClearBuffer();     
     return true;    
   }
   return false;
 }
 
-bool ReceivePIDs()
+bool ReceivePIDs2()
 {
     if(counter >= 4)
       if(cmds[0] == '0' && cmds[1] == '1' && cmds[3] == '0')      
       { 
-        SendEcho();      
+        SendEcho();
+        if(headerInfo)
+          BT.write("80 F1 11 06");
         switch(cmds[2])
         {
           case '0':
@@ -233,19 +273,19 @@ bool ReceivePIDs()
             //083A8000
             Serial.println("PIDs 01-32");
             //BT.write("4100083A8000");
-            BT.write("4100181B8001");
+            BT.write("4100181B8001");            
           break;
           case '2':
             Serial.println("PIDs 33-64");
-            BT.write("412000000001");
+            BT.write("412000000001");            
           break;
           case '4':
             Serial.println("PIDs 65-96");                        
-            BT.write("414008000000");                           
+            BT.write("414008000000");            
           break;
           case '6':
             Serial.println("PIDs 97-128");                   
-            BT.write("416000000000");            
+            BT.write("416000000000");
           break;
           case '8':
             Serial.println("PIDs 129-160");            
@@ -261,6 +301,142 @@ bool ReceivePIDs()
   return false;
 }
 
+bool ReceivePIDs()
+{   
+  if(counter >= 4)
+  {
+      if(cmds[0] == '0' && cmds[1] == '1' && cmds[3] == '0')
+      {
+        //Serial.println("Check io");
+      }
+      else
+      {
+        Serial.print(cmds[0]);
+        Serial.print(cmds[1]);
+        Serial.print(cmds[2]);
+        Serial.print(cmds[3]);
+        Serial.println(" Check Nio");
+        return false;
+       }
+  }
+   else
+      return false;
+      
+    
+  SendEcho();
+  uint8_t elmResponse[12];
+  int responseCounter = 0;
+  
+  if(headerInfo)
+  {    
+      elmResponse[responseCounter++] = 0x80;                
+      elmResponse[responseCounter++] = 0xF1;
+      elmResponse[responseCounter++] = 0x11;      
+      elmResponse[responseCounter++] = 0x06; //Length
+  }
+  //ServiceID
+  elmResponse[responseCounter++] = 0x41;
+  //Last Request
+  elmResponse[responseCounter++] = GetByteFromHexString(String(cmds[2]) + String(cmds[3]));
+  
+  switch(cmds[2])
+  {
+    case '0':            
+      //Engine Coolant Temp | Intake Pressure | RPM | Speed | Intake Air Temp | Throttle | PIDs 33-64
+      //ALT
+      //00011000000110111000000000000001
+      //181F8001     
+      //NEU mit gear
+      //00011000001110111000000000000101
+      //Ignore EngineLoad, AirFlowRate      
+//      elmResponse[responseCounter++] = 0x18;
+//      elmResponse[responseCounter++] = 0x3B;
+//      elmResponse[responseCounter++] = 0x80;
+//      elmResponse[responseCounter++] = 0x05;
+
+      elmResponse[responseCounter++] = 0x18;
+      elmResponse[responseCounter++] = 0x1B;
+      elmResponse[responseCounter++] = 0x80;
+      elmResponse[responseCounter++] = 0x01;
+      Serial.println("PIDs 01-32");
+    break;
+    case '2':
+      //412000000001      
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x20;
+      elmResponse[responseCounter++] = 0x01;
+      Serial.println("PIDs 33-64");
+    break;
+    case '4':
+      //414008000000
+      //Relative throttle position in %      
+      elmResponse[responseCounter++] = 0x48;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x01;
+      Serial.println("PIDs 65-96");
+    break;
+    case '6':            
+      //416000000000      
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x02;
+      Serial.println("PIDs 97-128");    
+    break;
+    case '8':
+      //418000000000      
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      Serial.println("PIDs 129-160");
+    break;
+    case 'A':      
+      //41A000000000
+      if(cmds[3] == '0')
+      {        
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        Serial.println("PIDs A1 - C0");
+      }
+    break;
+    case 'C':    
+      //41C000000000
+      if(cmds[3] == '0')
+      {        
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        elmResponse[responseCounter++] = 0x00;
+        Serial.println("PIDs C1 - E0");
+      }
+    break;
+    default:
+      Serial.println("UnknownPID List");
+    return false;
+  }
+  //Calc Checksum
+  if(headerInfo)   
+    elmResponse[responseCounter] = calcChecksum(elmResponse, responseCounter++);  
+  for(int i = 0; i < responseCounter; i++)
+  {      
+    PrintHex(elmResponse[i]);
+    if(i +1 < responseCounter)
+      SendSpace();
+  }
+
+  SendNewLine();
+  SendPrompt();  
+  Serial.print("PIDs succesful ");
+  Serial.println(cmds[2]);
+  ClearBuffer();      
+  return true;            
+}
+
 bool CheckAT()
 {
   bool ok = false;
@@ -269,21 +445,48 @@ bool CheckAT()
       {        
         switch(cmds[2])
         {
+          case 'A': //Adaptive Timing
+            if(cmds[3] == 'T')
+            {
+              Serial.print("AdaptiveTiming: ");
+              Serial.println(cmds[4] == 1);
+              ok = true;
+            }
+          break;
           case 'D': //Default
-            Serial.println("Set to default");
-            headerInfo = false;
-            spaces = false;
-            lineFeed = false;
-            echo = false;
-            memory = false;
-            ok = true;
+
+            if(cmds[3] == 'P' && cmds[4] == 'N')
+            {
+              Serial.println("Protocol Number");
+              //ISO 14230-4 KWP (fast init, 10.4 kbaud)
+              BT.print(5);
+              ok = false;
+            }//Describe protocol:
+            else if(cmds[3] == 'P')
+            {
+              Serial.println("Describe protocol");
+              //ISO 14230-4 KWP (fast init, 10.4 kbaud)
+              //BT.print('AUTO, ISO 14230-4 KWP');
+              BT.print('ISO 14230-4 KWP');
+              ok = false;
+            }
+            else //Reset settings to Default
+            {
+              Serial.println("Set to default");
+              headerInfo = false;
+              spaces = false;
+              lineFeed = false;
+              echo = false;
+              memory = false;
+              ok = true;
+            }            
           break;
           case 'Z': //Reset
             Serial.println("Reset");
-            delay(1000);
+            delay(500);
             BT.print(elmVersion);
-            SendNewLine();
-            ok = true;
+            //SendNewLine();
+            //ok = true;
           break;         
           case 'H': //Header
             Serial.print("Header: ");
@@ -293,7 +496,7 @@ bool CheckAT()
           break;
           case 'I': //Device Info
             Serial.println("DeviceInfo");
-            BT.print("ELM327");
+            BT.print("ELM327 v1.4");
             ok = false;
           break;
           case 'S': //Space
@@ -329,7 +532,22 @@ bool CheckAT()
             memory = cmds[3] == '1';
             Serial.println(memory);
             ok = true;
-          break;          
+          break;   
+          case 'P': //ProtocolClose
+            if(cmds[3] == 'C')
+            {
+              Serial.print("Protocol Close");
+              ok = true;
+            }
+            break;
+          case 'W': //WarmStart
+            if(cmds[3] == 'S')
+            {
+              Serial.print("WarmStart");
+              BT.print(elmVersion);
+              ok = false;
+            }
+          break;       
           case ' ':
             if(cmds[3] == 'A' && cmds[4] == 'T')
             {
@@ -350,8 +568,32 @@ bool CheckAT()
               ok = true;
             }
           break;
+          case '@':
+            switch(cmds[3])
+            {
+              case '1': //Device Description
+                Serial.print("Device Description");
+                BT.print("Thomas KDS Reader");
+                ok = false;
+              break;
+              case '2': //Device Identifier
+                Serial.print("Device Identifier");
+                BT.print("ELM327");
+                ok = false;
+              break;
+              case '3': //Set Device Identifiier (Nope :P )          
+                Serial.print("Set Device Identifier");
+                ok = true;
+              break;
+            }            
+          break;
           default://Unknown
-            Serial.println("Unknown AT Command!");
+            Serial.print("Unknown AT Command: ");
+            for(int i = 2; i <6;i++)
+            {
+              Serial.print(cmds[i]);
+            }
+            Serial.println();
             BT.print("?");
             ok = false;
           break;
@@ -370,6 +612,79 @@ bool CheckAT()
       return false;
 }
 
+bool CheckST()
+{
+  bool ok = false;
+  if(counter >= 2)
+      if(cmds[0] == 'S' && cmds[1] == 'T')
+      {        
+        switch(cmds[2])
+        {          
+          case 'I': //Device Info
+            Serial.println("DeviceInfo STI");
+            BT.print("ELM327 v1.4");
+            ok = false;
+          break;         
+          default://Unknown
+            Serial.print("Unknown ST Command: ");
+            for(int i = 2; i <6;i++)
+            {
+              Serial.print(cmds[i]);
+            }
+            Serial.println();
+            BT.print("?");
+            ok = false;
+          break;
+        }
+    
+        SendEcho();
+        
+        ClearBuffer();
+        if(ok)
+          SendOK();
+        SendNewLine();
+        SendPrompt();
+        //SendNewLine();
+        return true;
+      }      
+      return false;
+}
+
+bool CheckService()
+{   
+    Serial.println("Check Service");
+    if(cmds[0] == '0' && cmds[1] == '6' && cmds[2] == '0')
+    {
+      Serial.println("Service");
+    }
+    else
+    {        
+      Serial.println("Service Nio");
+      return false;
+    }
+      
+  for(int i = 0; i <= counter; i++)      
+        Serial.print(cmds[i]);
+  Serial.println();
+    
+  SendEcho();
+  uint8_t elmResponse[12];
+  int responseCounter = 0;
+  
+  if(headerInfo)
+  {    
+      elmResponse[responseCounter++] = 0x80;                
+      elmResponse[responseCounter++] = 0xF1;
+      elmResponse[responseCounter++] = 0x11;      
+      elmResponse[responseCounter++] = 0x06; //Length
+  }
+  //ServiceID
+  elmResponse[responseCounter++] = 0x41;
+  //Last Request
+  //elmResponse[responseCounter++] = cmds[2];
+  return true;
+}
+
 void SendNewLine()
 { 
   //Carriage Return 13
@@ -381,13 +696,16 @@ void SendNewLine()
 
 void SendPrompt()
 {   
-   BT.print(">");
+   //BT.print(">");
+   BT.write(0x3E);
 }
 
 void SendSpace()
 {
+  //if(!spaces) 
+  //  BT.print(" "); 
   if(spaces) 
-    BT.print(" "); 
+    BT.write(0x20);
 }
 
 void SendOK()
@@ -401,6 +719,8 @@ void SendEcho()
   {      
     for(int j = 0; j < counter; j++)
     {          
+      if(cmds[j] == 0x00)
+        break;
       BT.write(cmds[j]);          
     }        
     SendNewLine();
@@ -410,7 +730,7 @@ void SendEcho()
 void ClearBuffer()
 {
   counter = 0;
-  memset(cmds, 0, sizeof(cmds));
+  memset(cmds, 0, sizeof(cmds));  
 }
 
 byte getVal(char c)
@@ -424,4 +744,26 @@ byte getVal(char c)
 byte GetByteFromHexString(String hexValue)
 {
   return getVal(hexValue[1]) + (getVal(hexValue[0]) << 4);
+}
+
+void PrintHex(uint8_t data) // prints 8-bit data in hex with leading zeroes
+{
+  if (data < 0x10)         
+    BT.print("0");
+  String str = String(data,HEX);
+  str.toUpperCase();
+  BT.print(str);
+}
+
+// Checksum is simply the sum of all data bytes modulo 0xFF
+// (same as being truncated to one byte)
+uint8_t calcChecksum(uint8_t *data, uint8_t len)
+{
+  uint8_t crc = 0;
+
+  for (uint8_t i = 0; i < len; i++)
+  {
+    crc = crc + data[i];
+  }
+  return crc;
 }

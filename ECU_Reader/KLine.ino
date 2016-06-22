@@ -18,12 +18,16 @@ bool fastInit()
   Serial.begin(10400);
   
   // Start Communication is a single byte "0x81" packet.
+  //81 means Format without Header Information (Sender / Receiver)
+  format = 0x81;
   req[0] = 0x81;
   rLen = sendRequest(req, resp, 1, 3);
   delay(ISORequestDelay);
   // Response should be 3 bytes: 0xC1 0xEA 0x8F
   if ((rLen == 3) && (resp[0] == 0xC1) && (resp[1] == 0xEA) && (resp[2] == 0x8F))
   {
+    //Reset Format to Header:
+    format = 0x80;
     // Success, so send the Start Diag frame
     // 2 bytes: 0x10 0x80
     req[0] = 0x10;
@@ -32,11 +36,39 @@ bool fastInit()
     // OK Response should be 2 bytes: 0x50 0x80
     if ((rLen == 2) && (resp[0] == 0x50) && (resp[1] == 0x80))
     {
+      digitalWrite(BOARD_LED, HIGH);
+      ECUconnected = true;
       return true;
     }
   }
   // Otherwise, we failed to init.
+  digitalWrite(BOARD_LED, LOW);
+  ECUconnected = false;
   return false;
+}
+bool stopComm()
+{
+  uint8_t rLen;
+  uint8_t req[2];
+  uint8_t resp[3];
+
+  // Stop Diag frame
+  // 2 bytes: 0x20 0x80
+  req[0] = 0x20;
+  req[1] = 0x80;
+  rLen = sendRequest(req, resp, 2, 3);    
+  // OK Response should be 2 bytes: 0x60 0x80
+  if ((rLen != 2) || (resp[0] != 0x60) || (resp[1] != 0x80))
+  {
+    //return false;
+  }
+  // Stop Communication is a single byte "0x82" packet.  
+  format = 0x80;
+  req[0] = 0x82;  
+  rLen = sendRequest(req, resp, 1, 3);
+  digitalWrite(BOARD_LED, LOW);
+  ECUconnected = false;  
+  return true;
 }
 
 bool processRequest(uint8_t pid)
@@ -56,7 +88,8 @@ bool processRequest(uint8_t pid)
   if(ECUconnected)
   {
     // Status:
-    cmdBuf[0] = 0x21;
+    //cmdBuf[0] = 0x21;
+    cmdBuf[0] = translatedSID;
     // PID  
     cmdBuf[1] = pid;
   
@@ -105,18 +138,23 @@ uint8_t sendRequest(const uint8_t *request, uint8_t *response, uint8_t reqLen, u
   }
 
   // Form the request:
-  if (reqLen == 1)
-  {
-    buf[0] = 0x81;
-  }
-  else
-  {
-    buf[0] = 0x80;
-  }
+//  if (reqLen == 1)
+//  {
+//    buf[0] = 0x81;
+//  }
+//  else
+//  {
+//    buf[0] = 0x80;
+//  }
+  //Request 80 can also have a single byte!
+  buf[0] = format;
+  
   buf[1] = ECUaddr;
   buf[2] = MyAddr;
 
-  if (reqLen == 1)
+  //Ignore Length on Format 81
+  //if (reqLen == 1)
+  if(format == 0x81)
   {
     buf[3] = request[0];
     buf[4] = calcChecksum(buf, 4);
@@ -136,8 +174,7 @@ uint8_t sendRequest(const uint8_t *request, uint8_t *response, uint8_t reqLen, u
   // Now send the command...  
   for (uint8_t i = 0; i < bytesToSend; i++)
   {
-    bytesSent += Serial.write(buf[i]);    
-    //bytesSent += Test.write(buf[i]);    
+    bytesSent += Serial.write(buf[i]);        
     delay(ISORequestByteDelay);
   }
   // Wait required time for response.
@@ -149,11 +186,9 @@ uint8_t sendRequest(const uint8_t *request, uint8_t *response, uint8_t reqLen, u
   // Wait for and deal with the reply  
   while ((bytesRcvd <= maxLen) && ((millis() - startTime) < MAXSENDTIME))
   {
-    if (Serial.available())
-    //if(Test.available())
+    if (Serial.available())    
     {
-      c = Serial.read();      
-      //c = Test.read();
+      c = Serial.read();            
       startTime = millis(); // reset the timer on each byte received
 
       //delayLeds(ISORequestByteDelay, true);
@@ -222,7 +257,7 @@ uint8_t sendRequest(const uint8_t *request, uint8_t *response, uint8_t reqLen, u
                 return (bytesRcvd);
               } else
               {
-                //ToDo
+                //ToDo:
                 // Checksum Error.               
                 return (0);
               }
@@ -270,6 +305,7 @@ uint8_t calcChecksum(uint8_t *data, uint8_t len)
 void ErrorAppeard()
 {
   ECUconnected = false;
+  digitalWrite(BOARD_LED, LOW);
   //ECU ignores requests for 2 seconds, after error appeard
   delay(2000);  
 }

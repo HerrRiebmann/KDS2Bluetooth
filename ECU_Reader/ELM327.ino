@@ -5,13 +5,12 @@ bool ReadBluetoothInput()
     char input = BT.read();      
     //Ignore incoming Spaces:
     if(input == ' ') 
-      return false;
-    
-    bluetoothConnected = true;
-    lastBTrequest = millis();
-    
+      continue;
+           
     elmRequest[counter++] = input;
-    delay(3);
+    
+    delay(BTDelay);
+    
     //Carriage Return
     if(input == 0x0D)
       break;    
@@ -20,38 +19,47 @@ bool ReadBluetoothInput()
   //Nothing to read:
   if(counter == 0)
     return false;
-    
+
+  //BT Connected sucessfully
+  bluetoothConnected = true;
+  lastBTrequest = millis();
+      
   //Repeat last command when only \r appears
   if(counter == 1 && lastPID != 0x00)
   {
+    ClearBuffer();
     return sendPID(translatedPID);    
   }
 
-  //Interpret AT Command
-  if(elmRequest[0] == 'A')
-    if(CheckAT())
-      return true;
+  //Interpret AT Command (Controls ELM327)
+  if(elmRequest[0] == 'A' && CheckAT())
+    return true;
       
-  //Respond PID-List
-  if(counter >= 4)
-    if(elmRequest[0] == '0' && elmRequest[1] == '1' && elmRequest[3] == '0')       
-      if(ReceivePIDs())
-        return true; 
+  //Respond PID-List (Available Parameter)
+  //if(counter >= 4)
+  if(elmRequest[0] == '0' && elmRequest[1] == '1' && elmRequest[3] == '0' && ReceivePIDs())
+    return true; 
         
-  //PID Request (Mode01)
-  if(counter >= 3)  
-    if(elmRequest[0] == '0' && elmRequest[1] == '1')  
-      if(CheckPID())
-        return true;
-    
+  //PID Request (Mode01) (Show current Data)
+  //if(counter >= 3)  
+  if(elmRequest[0] == '0' && elmRequest[1] == '1' && CheckPID())
+    return true;
+
+  //PID Request (ModeXX) (Freezed data, Error codes, ect.)
+  //if(counter >= 4)  
+  if(elmRequest[0] == '0' && CheckPIDMode())
+      return true;
+        
   //Linefeed -> Ignore (Sometimes sent after CarriageReturn)
   if(elmRequest[counter] == 0x0A)
+  {
     ClearBuffer();
+    return true;
+  }
   
   //ToDo:
   //If last Request older then 20 Seconds: Answer with "?"
   //Unknown Command:
-  
   return false;
 }
 
@@ -61,29 +69,80 @@ bool CheckPID()
   //otherwise convert Text to Hex ("0A" -> 0x0A)
   lastPID = translateIncomingHeader();
 
-  //Abs Pressure (Kein Standard) - 08 
-  //Gear (Kein Standard) - 0B  
-  //Atmospheric Pressure 08
-  //Battery Voltage 0A
-  //Fuel Cut Mode (Schiebebetrieb)
-  
-  
-  //Translate ISO (OBD II) to Kawasaki Request
+  //Change ID´s to KDS pendant:
+  TranslateServiceId();
+
+  //Send only if response not faked
+  if(TranslateParameterId())  
+    return sendPID(translatedPID);
+}
+
+//Mode
+void TranslateServiceId()
+{
+    if(elmRequest[0] != '0')
+      return;
+    lastSID = GetByteFromHexString(String(elmRequest[0]) + String(elmRequest[1]));
+       
+    switch(elmRequest[1])
+    {
+      case '1': //Show current data
+        translatedSID = 0x21;
+      break;
+      case '2': //Show freeze frame data
+        translatedSID = 0x12;
+      break;
+      case '3': //Show stored Diagnostic Trouble Codes
+        translatedSID = 0x13;
+      break;
+      case '4': //Clear Diagnostic Trouble Codes and stored values
+        translatedSID = 0x14;
+      break;
+      case '5': //Test results, oxygen sensor monitoring (non CAN only)        
+        translatedSID = lastSID;
+      break;
+      case '6': //Test results, other component/system monitoring (Test results, oxygen sensor monitoring for CAN only)        
+        translatedSID = lastSID;
+      break;
+      case '7': //Show pending Diagnostic Trouble Codes (detected during current or last driving cycle)
+        translatedSID = 0x17;
+      break;
+      case '8': //Control operation of on-board component/system      
+        translatedSID = lastSID;
+      break;
+      case '9': //Request vehicle information
+//        0x02: Vehicle Identification Number
+//        0x04: Calibration Identifications
+//        0x06: Calibration Verification Number
+//        0x08: In-use Performance Tracking (Spark)
+//        0x0A: ECU Name
+//        0x0B: In-use Performance Tracking (Compression)
+//        0x0D: Engine Serial Number
+//        0x0F: Exhaust Regulation Or Type Approval Number 
+        translatedSID = 0x1A; //???? 1A is ECU Id...
+      break;
+      case 'A': //Permanent Diagnostic Trouble Codes (DTCs) (Cleared DTCs)        
+        translatedSID = lastSID;
+      default:
+        translatedSID = lastSID;
+      break;
+    }
+}
+
+//Translate ISO (OBD II) to Kawasaki Request
+bool TranslateParameterId()
+{  
   switch(lastPID)
   {    
     case 0x04: //Engine Load 1 Byte - OK
       //Throttle Opening & Engine Speed (RPM)
       //Or Inlet Air vacuum & RPM
+      //ToDo: Use for Gear and calc within Virb Edit
       translatedPID = 0x5B;   //???
+      //translatedPID = 0x0B;
     break;
     case 0x05: //Engine Coolant Temperature 1 Byte - OK
       translatedPID = 0x06;
-    break;
-    case 0x10: //MAF 2 Byte - OK [Not supported by garmin]
-      translatedPID = 0x05;  //MAF is nearly the same like Intake Air Pressure
-    break;
-    case 0x11: //Throttle Position 1 Byte - OK
-      translatedPID = 0x04;
     break;
     case 0x0B: //Intake Manifold Air Pressure 1 Byte
       translatedPID = 0x05; //Inlet Air Pressure
@@ -97,10 +156,20 @@ bool CheckPID()
     case 0x0F: //Intake Air Temperature 1 Byte - OK
       translatedPID = 0x07;
     break;
+    case 0x10: //MAF 2 Byte - OK [Not supported by garmin]
+      translatedPID = 0x05;  //MAF is nearly the same like Intake Air Pressure
+    break;
+    case 0x11: //Throttle Position 1 Byte - OK
+      translatedPID = 0x04;
+    break;    
+    case 0x1E:  //Wildcard for Gear
+      translatedPID = 0x0B;
+    break;
     case 0x33: //Barometric Pressure 1 Byte
       translatedPID = 0x08; //Atmospheric Pressure
     break;    
     case 0x42: //Internal Control Voltage 2 Byte
+      //Voltage Internal C2
       //translatedPID = 0x5F;
       //Battery Voltage
       translatedPID = 0x0A;
@@ -108,20 +177,51 @@ bool CheckPID()
     case 0x45: //Relative Throttle Position 1 Byte
       translatedPID = 0x5B;
     break;    
+    case 0x1C: //OBD standard this vehicle conforms to 1 Byte
+    case 0x4F: //Maximum values Fuel, Oxy, Voltage 4 Byte
+    case 0x50: //Maximum values Air flow rate 4 Byte 
+    case 0x51: //Fuel Type 1 Byte
+      //Fake Return Values
+      //return fakePID(lastPID);
+      if(fakePID(lastPID))      
+        return false;
+    break;
+    case 0x7F:  //TotalOperatingHours    
+      translatedPID = 0x44;
+    break;    
     default:
       translatedPID = 0x00;
     break;
   }
-  return sendPID(translatedPID);  
+  return true;
+}
+
+bool CheckPIDMode()
+{  
+  //Remove Header, if required
+  //otherwise convert Text to Hex ("0A" -> 0x0A)
+  lastPID = translateIncomingHeader();
+
+  TranslateServiceId();
+  //ToDo: SendPID, Fake Values or Send different Commands..  
+  ClearBuffer();
+  //ToDo: Kills Emulator at the moment ;-)
+  return true;
+  return sendPID(lastPID);
 }
 
 bool sendPID(uint8_t pid)
 {  
   if(!ECUconnected)
-    ECUconnected = fastInit();
+  {
+    //Try to open protocol
+    BT.println("SEARCHING...");
+    fastInit();
+  }
 
   if(ECUconnected && pid != 0x00)
   { 
+    //Send PID to ECU
     if(processRequest(pid))
     {
       //Error Respondend from ECU! Re-Init after 2 Seconds
@@ -129,7 +229,8 @@ bool sendPID(uint8_t pid)
       {        
         //Error responded
         BT.print("?");
-        ErrorAppeard();            
+        ErrorAppeard();
+        ClearBuffer();
         return false;
       }
     }    
@@ -137,19 +238,24 @@ bool sendPID(uint8_t pid)
   else //Not connected
     if(pid != 0x00)
     {
-      BT.print("BUSY");      
+      BT.print("BUSY");
+      ClearBuffer();
       return false;
     }
 
   //Unknown PID or empty Response:
   if(pid == 0x00 || (ecuResponse[2] == 0x00 && ecuResponse[3] == 0x00))
-  {
-    BT.print("NO DATA");    
+  {    
+    BT.print("NO DATA");
   }
   else
   {    
     uint8_t elmResponse[12];
     int responseCounter = 0;
+
+    //Calculate Values fom KDS to OBD II
+    ConvertResult();    
+    
     //header required:
     if(header)
     {
@@ -167,19 +273,17 @@ bool sendPID(uint8_t pid)
       elmResponse[responseCounter++] = 0x80;                
       elmResponse[responseCounter++] = MyAddr;
       elmResponse[responseCounter++] = ECUaddr;
+      //ToDo: Make dynamically
       if(ecuResponse[3] == 0x00)
-        elmResponse[responseCounter++] = 3;
+        elmResponse[responseCounter++] = 0x03;//2 byte response + ServiceID + lastPid
       else
-        elmResponse[responseCounter++] = 4;
+        elmResponse[responseCounter++] = 0x04;//3 byte response
     }
-    //ServiceID (OBD2: 61, KDS: 41)
-    elmResponse[responseCounter++] = 0x41;    
+    //ServiceID (OBD2: 61, KDS: 41) [Always: SID + 40]    
+    elmResponse[responseCounter++] = lastSID + 0x40;
     
-    //requested PID (not translated!!!)
+    //requested PID (not translated PID!!!)
     elmResponse[responseCounter++] = lastPID;
-
-    //Calculate Values fom KDS to OBD II
-    ConvertResult();    
     
     //1st Byte
     elmResponse[responseCounter++] = ecuResponse[2];
@@ -187,14 +291,31 @@ bool sendPID(uint8_t pid)
     //2nd Byte
     if(ecuResponse[3] != 0x00)    
       elmResponse[responseCounter++] = ecuResponse[3];
+
+    //ToDo: 6Bytes on Total Operating Hours!!!
+    //Dirty hack oO
+    if(pid == 0x44)
+    {
+      //Length
+      elmResponse[3] = 0x06;
+      elmResponse[responseCounter-1] = 0x00;
+      elmResponse[responseCounter] = 0x00;
+      elmResponse[responseCounter++] = ecuResponse[2];
+      elmResponse[responseCounter++] = ecuResponse[3];      
+      elmResponse[responseCounter++] = ecuResponse[4];
+      elmResponse[responseCounter++] = ecuResponse[5];      
+    }
     
     //Calc Checksum if required
-    if(header)
+    if(header)    
       elmResponse[responseCounter] = calcChecksum(elmResponse, responseCounter);
-    for(int i = 0; i < responseCounter; i++)
+    else
+      responseCounter--;
+    for(int i = 0; i <= responseCounter; i++)
     {      
       PrintHex(elmResponse[i]);
-      SendSpace();
+      if(i < responseCounter)
+        SendSpace();
     }    
   }  
   SendNewLine();
@@ -203,159 +324,277 @@ bool sendPID(uint8_t pid)
   return true;
 }
 
+bool fakePID(uint8_t pid)
+{
+  //Empty previous "results"
+  ClearBuffer();
+  int byteCount = 0;
+  switch(pid)
+  {
+    case 0x1C: //OBD compliant
+      byteCount = 1;
+      ecuResponse[0] = 0x05; //Non OBD compliant
+      break;
+    case 0x4F: //Maximum values Fuel, Oxy, Voltage 4 Byte
+      byteCount = 4;
+      ecuResponse[0] = 0x00;
+      ecuResponse[1] = 0x00;
+      ecuResponse[2] = 0x00;
+      ecuResponse[3] = 0x00;      
+    break;
+    case 0x50: //Maximum value for AirFlow Rate (4Byte) 0-25550
+      byteCount = 4;
+      ecuResponse[0] = 0x00;
+      ecuResponse[1] = 0x00;
+      ecuResponse[2] = 0x00;
+      ecuResponse[3] = 0x00;      
+    break;
+    case 0x51: //Fuel Type
+      byteCount = 1;
+      ecuResponse[0] = 0x01; //Gasoline
+    break;
+    default:
+//      BT.print("NO DATA");
+//      SendNewLine();
+//      SendPrompt();  
+//      ClearBuffer();
+      return false;
+  }
+  
+  uint8_t elmResponse[12];
+  int responseCounter = 0; 
+  //header required:
+  if(header)
+  {    
+    elmResponse[responseCounter++] = 0x80;                
+    elmResponse[responseCounter++] = MyAddr;
+    elmResponse[responseCounter++] = ECUaddr;
+    //Length
+    elmResponse[responseCounter++] = byteCount + 2; //Data + ServiceID + PID    
+  }
+  //ServiceID (OBD2: 61, KDS: 41)  
+  elmResponse[responseCounter++] = lastSID + 0x40;
+  
+  //requested PID (not translated!!!)
+  elmResponse[responseCounter++] = lastPID;
+  
+  //Return values
+  for(int i = 0; i < byteCount; i++)
+    elmResponse[responseCounter++] = ecuResponse[i];
+   
+  //Calc Checksum if required
+  if(header)    
+    elmResponse[responseCounter] = calcChecksum(elmResponse, responseCounter);
+  
+  for(int i = 0; i <= responseCounter; i++)
+  {      
+    PrintHex(elmResponse[i]);
+    if(i < responseCounter)
+      SendSpace();
+  }
+  
+  SendNewLine();
+  SendPrompt();  
+  ClearBuffer();
+  return true;
+}
+
 void ConvertResult()
 {
-  int value = 0;
+  unsigned int value = 0;
   uint8_t minimum;
+  float decValue;
   switch(ecuResponse[1])
   {
     case 0x04: //Throttle Position Sensor
       //201 = 0% = idle, 405 = 100%
+      //Sometimes 202 (C9 | CA) 
       minimum = 201;
-      //((Value-Minimum) *100) / (Maximum - Minimum)
-      value = ecuResponse[2] * 100;
-      value += ecuResponse[3];
-
+      
+      value = ecuResponse[2] * 100 + ecuResponse[3];
+            
       if(value > ThrottlePosMax)
       {
         ThrottlePosMax = value;
-        EEPROM.write(0, value);
-      }
-      
-      if(value >= minimum)
-        value = ((value-minimum) *100) / (405 - minimum);
+        EEPROM.write(0, ThrottlePosMax - 255);        
+      }      
+      //((Value-Minimum) *100) / (Maximum - Minimum) = %      
+      //OBD II Calculation: (100/255) * A [Backwards]: 100% = 255
+      if(value > minimum)        
+        ecuResponse[2] = ((value-minimum) *100) / (ThrottlePosMax - minimum) * 255/100;
       else
-        value = 0;
-      //Shouldn´t happen...
-      if(value > 100)
-        value = 100;
-      ecuResponse[2] = value;
+        value = 0x00;
+            
       ecuResponse[3] = 0x00;
       break;
     case 0x05: //Airpressure: From 2 byte to 1 byte:    
       if(ecuResponse[2] >= 2)
-        ecuResponse[2] = ecuResponse[2] / 2;    
+        ecuResponse[2] = ecuResponse[2] / 2; //Double precision
       //Ignore accuracy
       ecuResponse[3] = 0x00;      
       break;    
     case 0x06: //Temp
     case 0x07:
-      //Don´t drive when it´s freezing ;)      
-      if(ecuResponse[2] >= 48)
-      {
-        value = ecuResponse[2] -48;
-        value /= 1.6;      
-        value += 40;
-      }
+      //(A-48)/1.6 = Celsius
+      //+40 to avoid negative values
+      if(ecuResponse[2] == 0x00)
+        ecuResponse[2] = 40; //0C°
       else
-        value = 40;
-      ecuResponse[2] = value;
+        ecuResponse[2] = (ecuResponse[2] -48) / 1.6 + 40;
     break;
     case 0x08:
       //Pressure in kPa
+      //0 Meters above Sea level = 100 kPa
       if(ecuResponse[2] >= 2)
         ecuResponse[2] = ecuResponse[2] /2;
-      else
-        ecuResponse[2] = 200; //0 Meters above Sea level (100 kPa)
     break;
     case 0x09: //RPM
-      value = ecuResponse[2] *100;
-      value += ecuResponse[3];
+      value = ecuResponse[2] *100 + ecuResponse[3];      
+      //OBD: (256A + B) / 4
       value *= 4;
-      ecuResponse[3] = value % 100;
-      value = (value - ecuResponse[3]);
+      ecuResponse[3] = value % 256;      
       if(value >= 256)
         ecuResponse[2] = value / 256;
       else
         ecuResponse[2] = 0x00;
     break;
+    case 0x0B: //Gear    
+      //Delete KDS Checksum
+      ecuResponse[3] = 0x00;      
+    break;
     case 0x0C: //Speed    
       //(A*100+B) / 2
-      value = ecuResponse[2] *100;
-      value += ecuResponse[3];    
+      value = ecuResponse[2] *100 + ecuResponse[3];      
       if(value >= 2)
-        value /= 2;    
-      ecuResponse[2] = value;   
+        ecuResponse[2] = value / 2;
+      else
+        ecuResponse[2] = 0x00;
       ecuResponse[3] = 0x00;
-    break;
+    break;    
     case 0x5B: //Sub Throttle valve Sensor
       //81 = 0% = idle, (?)189 = 100% //will be adjusted dynamically
       minimum = 81;
       value = ecuResponse[2];      
-      //Dirty Fix->
       if(value < minimum)
         value = minimum;
       if(value > SubThrottleMax)
       {
         SubThrottleMax = value;
-        EEPROM.write(1, value);
+        EEPROM.write(1, SubThrottleMax);
       }
-      //((Value-Minimum) *100) / (Maximum - Minimum)
-      value = ((value-minimum) *100) / (ThrottlePosMax - minimum);
-      //OBD: A*100/255
-      if(value > 0)
-        value = value /100 * 255;
-      ecuResponse[2] = value;
+      //((Value-Minimum) *100) / (Maximum - Minimum) = %      
+      //OBD: A*100/255      
+      ecuResponse[2] = ((value-minimum) *100) / (SubThrottleMax - minimum) * 255/100;
     break;
-    case  0x5F: //Voltage
+    case 0x5F: //Internal Voltage
+    case 0x0A:  //Battery Voltage    
+      value = ecuResponse[2];
     //153 = 12 V = Factor 12,75
-    if(value > 0)
-      value = ecuResponse[2] / 12.75;
-      //OBD II
-      //((A*256)+B)/1000
-      //2 Byte      
+    //OBD II
+    //((A*256)+B)/1000
+    //2 Byte
+    decValue = ecuResponse[2] / 12.75;
+    ecuResponse[2] = ecuResponse[2] / 12.75 * 1000/256;
+    ecuResponse[3] =  100 * (decValue - value);
+    break;
+    default:
     break;
   }
 }
 
 bool ReceivePIDs()
 {     
-  SendEcho();      
+  SendEcho();
+  uint8_t elmResponse[12];
+  int responseCounter = 0;
+  
+  if(header)
+  {    
+      elmResponse[responseCounter++] = 0x80;                
+      elmResponse[responseCounter++] = MyAddr;
+      elmResponse[responseCounter++] = ECUaddr;      
+      elmResponse[responseCounter++] = 0x06; //Length
+  }
+  //ServiceID  
+  elmResponse[responseCounter++] = lastSID + 0x40;
+  
+  //Last Request
+  elmResponse[responseCounter++] = GetByteFromHexString(String(elmRequest[2]) + String(elmRequest[3]));
+  
   switch(elmRequest[2])
   {
     case '0':            
       //Engine Coolant Temp | Intake Pressure | RPM | Speed | Intake Air Temp | Throttle | PIDs 33-64
+      //ALT
       //00011000000110111000000000000001
-      //181B8001
+      //181F8001     
+      //NEU mit gear
+      //00011000001110111000000000000101
       //Ignore EngineLoad, AirFlowRate
-      if(spaces)
-        //BT.write("41 00 18 1B 80 01");
-        BT.write("41 00 08 1A 80 01");
-      else
-      //81A8001
-        //BT.write("4100181B8001");
-        BT.write("4100081A8001");
+      elmResponse[responseCounter++] = 0x18;
+      elmResponse[responseCounter++] = 0x3B;
+      elmResponse[responseCounter++] = 0x80;
+      elmResponse[responseCounter++] = 0x05;
     break;
     case '2':
-      if(spaces)
-        BT.write("41 20 00 00 00 01");
-      else
-        BT.write("412000000001");
+      //412000000001
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x20;
+      elmResponse[responseCounter++] = 0x01;
     break;
     case '4':
+      //414008000000
       //Relative throttle position in %
-      if(spaces)
-        BT.write("41 40 08 00 00 00");
-      else
-        BT.write("414008000000");                         
+      elmResponse[responseCounter++] = 0x48;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x01;
     break;
     case '6':            
-      if(spaces)
-        BT.write("41 60 00 00 00 00");
-      else
-        BT.write("416000000000");            
+      //416000000000
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x02;
     break;
-    case '8':            
-      if(spaces)
-        BT.write("41 80 00 00 00 00");
-      else
-        BT.write("418000000000");
+    case '8':
+      //418000000001
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x01;
+    break;
+    case 'A':
+      //41A000000001
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x01;
+    break;
+    case 'C':
+      //41C000000000
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
+      elmResponse[responseCounter++] = 0x00;
     break;
     default:
     return false;
-  }        
+  }
+  //Calc Checksum
+  if(header)   
+    elmResponse[responseCounter] = calcChecksum(elmResponse, responseCounter);
+  else
+    responseCounter--;
+  for(int i = 0; i <= responseCounter; i++)
+  {      
+    PrintHex(elmResponse[i]);
+    if(i < responseCounter)
+      SendSpace();
+  }
   SendNewLine();
-  SendPrompt();
+  SendPrompt();  
   ClearBuffer();    
   return true;            
 }
@@ -365,17 +604,52 @@ bool CheckAT()
   bool ok = false;  
   switch(elmRequest[2])
   {
-    case 'D': //Default            
-      header = false;
-      spaces = false;
-      linefeed = false;
-      echo = false;
-      memory = false;
-      ok = true;
+    case 'A': //Adaptive Timing
+      if(elmRequest[3] == 'T')
+      {        
+        switch(elmRequest[4])
+        {
+          case 0: //Disable
+          case 1: //Set by ST
+          case 2: //More agressive...
+          ok = true;  
+          break;
+        }        
+      }
+      break;      
+    case 'D': //Default
+      //Describe protocol by number:
+      if(elmRequest[3] == 'P' && elmRequest[4] == 'N')
+      {
+        //ISO 14230-4 KWP (fast init, 10.4 kbaud)
+        //BT.print(5);
+        //Auto
+        BT.print(0);
+        ok = false;
+      }//Describe protocol:
+      else if(elmRequest[3] == 'P')
+      {
+        //ISO 14230-4 KWP (fast init, 10.4 kbaud)
+        //BT.print('ISO 14230-4 KWP');
+        //If Protocol is set to Auto:
+        BT.print('AUTO, ISO 14230-4 KWP');
+        ok = false;
+      }
+      else //Reset settings to Default
+      {
+        header = false;
+        spaces = false;
+        linefeed = false;
+        echo = false;
+        memory = false;
+        ok = true;
+      }
     break;
-    case 'Z': //Reset            
+    case 'Z': //Reset
+      if(ECUconnected)
+        stopComm();
       if(!ECUconnected)
-        fastInit();
+        ECUconnected = fastInit();
       BT.print(elmVersion);
       SendNewLine();
       ok = true;
@@ -408,7 +682,22 @@ bool CheckAT()
     case 'M': //Memory      
       memory = elmRequest[3] == '1';            
       ok = true;
-    break;          
+    break;
+    case 'P': //ProtocolClose
+      if(elmRequest[3] == 'C')
+      {
+        stopComm();
+        ok = true;
+      }
+      break;
+    case 'W': //WarmStart
+      if(elmRequest[3] == 'S')
+      {
+        //ToDo: Restart?
+        BT.print(elmVersion);
+        ok = false;
+      }
+    break;
     case ' ':
       if(elmRequest[3] == 'A' && elmRequest[4] == 'T')
       {
@@ -424,18 +713,27 @@ bool CheckAT()
         ok = true;
       }
     break;
-    case 'X': //Receive all supported PIDs and Values
-      SniffEcu();      
-      ClearBuffer();
-      return true;
+    case '@':
+      switch(elmRequest[3])
+      {
+        case '1': //Device Description
+          BT.print("Thomas KDS Reader");
+          ok = false;
+        break;
+        case '2': //Device Identifier
+          BT.print("ELM327");
+          ok = false;
+        break;
+        case '3': //Set Device Identifiier (Nope :P )          
+          ok = true;
+        break;
+      }      
     break;
-    case 'Y': //Receive some specific PID Values
-      SniffKnownCmds();
-      ClearBuffer();
-      return true;
-    break;    
+    case 'X': //My sniffer features
+      ok = CustomAtCommands(elmRequest[3]);
+    break;
     default: //Unknown            
-      BT.print("?");      
+      BT.print("?");
       ok = false;
     break;
   }
@@ -448,6 +746,62 @@ bool CheckAT()
   SendNewLine();
   SendPrompt();
   return true;      
+}
+
+bool CustomAtCommands(char c)
+{
+  switch(c)
+  {
+    case 'A': //Receive all supported PIDs and Values
+      SniffEcu();      
+      ClearBuffer();
+      return true;
+    break;
+    case 'S': //Receive some specific PID Values
+      SniffKnownCmds();
+      ClearBuffer();
+      return true;
+    break;
+    case 'C': //Clear Throttle max values and reset to stock
+      ClearThrottleValues();
+      SendOK();
+      return true;
+    break;
+    case 'P': //Print current Throttle Values
+      PrintThrottleValues();
+      return true;
+    break;
+    case 'D': //Read diagnostic values
+      SniffDiagnostic();
+      return true;
+    break;
+    case 'I': //Sniff ECU ID
+      SniffInfo();
+      return true;
+    break;
+    default:
+      BT.print("?");
+      return false;    
+  }
+}
+
+void ClearThrottleValues()
+{
+  //Lower for self adjustment
+  //ThrottlePosMax = 405;
+  ThrottlePosMax = 380;
+  EEPROM.write(0, ThrottlePosMax -255);
+  //SubThrottleMax = 189;
+  SubThrottleMax = 170;
+  EEPROM.write(1, SubThrottleMax);
+}
+
+void PrintThrottleValues()
+{
+  BT.print("Throttle: ");
+  BT.println(ThrottlePosMax);
+  BT.print("SubThrottleValve: ");
+  BT.println(SubThrottleMax);
 }
 
 uint8_t translateIncomingHeader()
@@ -493,7 +847,7 @@ void SendPrompt()
 void SendSpace()
 {
   if(spaces) 
-    BT.write(0x20);    
+    BT.write(0x20);
 }
 
 void SendOK()
@@ -508,7 +862,7 @@ void SendEcho()
     for(int i = 0; i <= counter; i++)
     {
       if(elmRequest[i] == 0x00)
-        return;
+        break;
       BT.write(elmRequest[i]);
     }        
     SendNewLine();
