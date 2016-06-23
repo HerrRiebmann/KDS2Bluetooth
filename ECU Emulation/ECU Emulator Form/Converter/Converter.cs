@@ -82,6 +82,8 @@ namespace EcuEmulatorForm.Converter
         {
             if (value == null)
                 return null;
+            if (String.IsNullOrEmpty(value.ToString()))
+                return null;
             var bytes = new byte[value.ToString().Split(' ').Count()];
             var i = 0;
             foreach (var s in value.ToString().Split(' '))

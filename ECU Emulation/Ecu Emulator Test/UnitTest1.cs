@@ -36,6 +36,18 @@ namespace EcuEmulatorTest
             RequestSpecificRegister();
         }
 
+        [TestMethod]
+        public void CheckChecksum()
+        {
+            var data = "80 F1 11 03 41 1E 04";
+            var expectedChecksum = " E8";
+            
+            var dataWithChechsum = EcuEmulator.Emulator.AddChecksum(data);
+            var result = EcuEmulator.Emulator.CheckChecksum(dataWithChechsum);
+            Assert.IsTrue(result, "Checksum ist fehlerhaft!");
+            Assert.AreEqual(dataWithChechsum, data + expectedChecksum, "Werte stimmen nicht überein");
+        }
+
         private void RequestSpecificRegister()
         {
             var result = CheckPid("44");
@@ -83,6 +95,11 @@ namespace EcuEmulatorTest
             var setupJ = EcuSetup.Load(Serializer.ConversionTypes.Json);
 
             setupJ.Save(Serializer.ConversionTypes.Json);
+
+            //Create Bin:
+            var setupB = EcuSetup.Load(Serializer.ConversionTypes.Binary);
+
+            setupB.Save(Serializer.ConversionTypes.Binary);
         }
 
         public void InitializeEcu()

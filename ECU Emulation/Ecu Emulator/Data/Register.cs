@@ -57,7 +57,9 @@ namespace EcuEmulator.Data
         EmergencyStop = 98,
         FuelCutMode = 106,
         EngineStartMode = 107,
-        PidList129toX = 128
+        PidList129to160 = 128,
+        PidList160to191 = 160,
+        PidList192to223 = 192
     }
 
     public class Register : Serializer<Register>

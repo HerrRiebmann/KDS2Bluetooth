@@ -196,6 +196,9 @@ namespace SerialComPort
             var comBuffer = new byte[bytes];
             //read the data and store it
             _comPort.Read(comBuffer, 0, bytes);
+
+            if (bytes == 0)
+                return;
             //display the data to the user
             var msg = Backend.Helper.Converter.ByteToHex(comBuffer);
 

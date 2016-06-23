@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
@@ -12,16 +13,17 @@ namespace Backend.Data
         public enum ConversionTypes
         {
             Xml,
-            Json
+            Json,
+            Binary
         }
     }
-
+    [Serializable]
     public class Serializer<T> : INotifyPropertyChanged
     {
         #region INotifyPropertyChanged implementation
 
         public event PropertyChangedEventHandler PropertyChanged;
-
+        
         protected void Notify(string propertyName)
         {
             if (PropertyChanged != null)
@@ -58,6 +60,20 @@ namespace Backend.Data
             //CommonAppData
             //return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         }
+        
+        public static string GetFileEnding(Serializer.ConversionTypes conversionType)
+        {
+            switch (conversionType)
+            {
+                case Serializer.ConversionTypes.Xml:
+                    return ".xml";
+                case Serializer.ConversionTypes.Json:
+                    return ".json";
+                case Serializer.ConversionTypes.Binary:
+                    return ".bin";
+            }
+            return string.Empty;
+        }
 
         public void Save(string fileName, Serializer.ConversionTypes conversionType)
         {
@@ -65,27 +81,40 @@ namespace Backend.Data
                 fileName = string.Empty;
             try
             {
-                 fileName = fileName.Remove(0, 6);
+                //Remove: "file:\"
+                if(fileName.ToLower().Contains("file:\\"))
+                    fileName = fileName.Remove(0, 6);
 
-                 var ending = conversionType == Serializer.ConversionTypes.Json ? ".json" : ".xml";
+                var ending = GetFileEnding(conversionType);
 
+                var dirName = Path.GetDirectoryName(fileName);
+                if(String.IsNullOrEmpty(dirName))
+                    throw new Exception("Filename cannot be empty!");
+
+                //relative or absolute path
                 if (fileName.IndexOf(@"\", StringComparison.Ordinal) >= 0)
-                    if (!Directory.Exists(Path.GetDirectoryName(fileName)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                    if (!Directory.Exists(dirName))
+                        Directory.CreateDirectory(dirName);
                 if (!Path.HasExtension(fileName))
                     fileName = Path.Combine(fileName, typeof(T).Name + ending);
 
                 var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
-                if (conversionType == Serializer.ConversionTypes.Xml)
+                switch (conversionType)
                 {
-                    var xmlSer = new XmlSerializer(typeof (T));
-                    xmlSer.Serialize(fs, this);
+                    case Serializer.ConversionTypes.Xml:
+                        var xmlSer = new XmlSerializer(typeof (T));
+                        xmlSer.Serialize(fs, this);
+                        break;
+                    case Serializer.ConversionTypes.Json:
+                        var jstr = JsonConvert.SerializeObject(this);
+                        fs.Write(Encoding.Default.GetBytes(jstr), 0, Encoding.Default.GetByteCount(jstr));
+                        break;
+                    case Serializer.ConversionTypes.Binary:
+                        var binaryFormatter = new BinaryFormatter();
+                        binaryFormatter.Serialize(fs, this);
+                        break;
                 }
-                if (conversionType == Serializer.ConversionTypes.Json)
-                {
-                    var jstr = JsonConvert.SerializeObject(this);
-                    fs.Write(Encoding.Default.GetBytes(jstr), 0, Encoding.Default.GetByteCount(jstr));
-                }
+                
                 fs.Close();
             }
             catch (IOException e)
@@ -118,7 +147,7 @@ namespace Backend.Data
             fileName = fileName.Remove(0, 6);
 
             T data = default(T);
-            var ending = conversionType == Serializer.ConversionTypes.Json ? ".json" : ".xml";
+            var ending = GetFileEnding(conversionType);
             if (!Path.HasExtension(fileName))
                 fileName = Path.Combine(fileName, typeof(T).Name + ending);
             if (File.Exists(fileName))
@@ -126,18 +155,22 @@ namespace Backend.Data
                 try
                 {
                     var fs = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-                    if (conversionType == Serializer.ConversionTypes.Xml)
+                    switch (conversionType)
                     {
-                        var xmlSer = new XmlSerializer(typeof (T));
-                        data = (T) xmlSer.Deserialize(fs);
-                    }
-                    if (conversionType == Serializer.ConversionTypes.Json)
-                    {
-                        using (var reader = new StreamReader(fs))
-                        {
-                            data = (T)JsonConvert.DeserializeObject(reader.ReadToEnd(), typeof(T));
-                        }
-                        
+                        case Serializer.ConversionTypes.Xml:
+                            var xmlSer = new XmlSerializer(typeof (T));
+                            data = (T) xmlSer.Deserialize(fs);
+                            break;
+                        case Serializer.ConversionTypes.Json:
+                            using (var reader = new StreamReader(fs))
+                            {
+                                data = (T)JsonConvert.DeserializeObject(reader.ReadToEnd(), typeof(T));
+                            }
+                            break;
+                        case Serializer.ConversionTypes.Binary:
+                            var binaryFormatter = new BinaryFormatter();
+                            data = (T)binaryFormatter.Deserialize(fs);
+                            break;
                     }
                     fs.Close();
                 }

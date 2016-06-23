@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Linq;
 using Backend.Helper;
@@ -176,6 +177,10 @@ namespace EcuEmulator
             foreach (var register in Register.Items)
             {
                 if (msgSize == 2 && register.Mode.Equals(mode) && register.Parameter.Equals(value))
+                {
+                    return CreateAnswer(register);
+                }
+                if (msgSize == 1 && register.Parameter.Equals(mode))
                 {
                     return CreateAnswer(register);
                 }
@@ -465,11 +470,22 @@ namespace EcuEmulator
 
             foreach (var register in Register.Items)
             {
-                if (register.Mode.Equals(values[0]) && register.Parameter.Equals(values[1]))
+                //Wenn Mode leer, dann entspricht das dem Wert!
+                if (register.Mode.Equals(0x00))
                 {
-                    Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator, String.Format("Register {0} found!", register.Description));
-                    return true;
+                    if (register.Parameter.Equals(values[0]))
+                    {
+                        Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator,
+                            String.Format("Register {0} found!", register.Description));
+                        return true;
+                    }
                 }
+                else
+                    if (register.Mode.Equals(values[0]) && register.Parameter.Equals(values[1]))
+                    {
+                        Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator, String.Format("Register {0} found!", register.Description));
+                        return true;
+                    }
             }
             //Also answer unknown Register:
             //return false;
@@ -582,7 +598,9 @@ namespace EcuEmulator
             list.Items.Add(new Register(PidTypes.PidList33to65, 0x21, 0x20, "Supported PIDs 33-65", new byte[] { 0xC3, 0xE5, 0xE0, 0x1F }));
             list.Items.Add(new Register(PidTypes.PidList66to96, 0x21, 0x40, "Supported PIDs 66-96", new byte[] { 0xF0, 0x00, 0x14, 0x3F }));
             list.Items.Add(new Register(PidTypes.PidList97to128, 0x21, 0x60, "Supported PIDs 97-128", new byte[] { 0xFF, 0x07, 0x00, 0x01 }));
-            list.Items.Add(new Register(PidTypes.PidList129toX, 0x21, 0x80, "Supported PIDs 128-XXX", new byte[] { 0x20, 0x00, 0x00, 0x21 }));
+            list.Items.Add(new Register(PidTypes.PidList129to160, 0x21, 0x80, "Supported PIDs 128-160", new byte[] { 0x20, 0x00, 0x00, 0x21 }));
+            list.Items.Add(new Register(PidTypes.PidList160to191, 0x21, 0x80, "Supported PIDs 160-191", new byte[] { 0x20, 0x00, 0x00, 0x01 }));
+            list.Items.Add(new Register(PidTypes.PidList192to223, 0x21, 0x80, "Supported PIDs 192-223", new byte[] { 0x20, 0x1E, 0x1F, 0x07 }));
 
             list.Items.Add(new Register(PidTypes.StarterSwitch, 0x21, 0x02, "Starter Switch", 0, 1, 1));
             list.Items.Add(new Register(PidTypes.ThrottleOpening, 0x21, 0x04, "Throttle Pos. Sensor", 201, 405, 1));
@@ -610,6 +628,7 @@ namespace EcuEmulator
             list.Items.Add(new Register(PidTypes.EmergencyStop, 0x21, 0x62, "Emergency Stop", new byte[]{0x00, 0x00}));
             list.Items.Add(new Register(PidTypes.FuelCutMode, 0x21, 0x6A, "Fuel cut Mode (coasting/enginebreaking)", 0, 1, 1));
             list.Items.Add(new Register(PidTypes.EngineStartMode, 0x21, 0x6B, "Engine starting mode", 0, 1, 1));
+            list.Items.Add(new Register(PidTypes.EcuId, 0x00, 0x1A, "ECU ID", new byte[] { 0x32, 0x31, 0x32, 0x31, 0x35, 0x2D, 0x30, 0x33, 0x34, 0x31}));
             return list;
         }
 

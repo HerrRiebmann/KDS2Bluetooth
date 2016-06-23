@@ -14,6 +14,8 @@ namespace Backend.Helper
         /// <returns>a byte array</returns>
         public static byte[] HexToByte(string msg)
         {
+            if(String.IsNullOrEmpty(msg))
+                return new byte[0];
             //remove any spaces from the string
             msg = msg.Replace(" ", "");
             //create a byte array the length of the
@@ -49,6 +51,7 @@ namespace Backend.Helper
                 return builder.ToString().ToUpper();
             }
             return "ByteArray is Empty";
+            //return "00";
         }
 
         public static string ByteToHex(byte comByte)

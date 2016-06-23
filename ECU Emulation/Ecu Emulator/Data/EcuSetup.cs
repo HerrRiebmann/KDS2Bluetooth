@@ -4,6 +4,7 @@ using Backend.Data;
 
 namespace EcuEmulator.Data
 {
+    [Serializable]
     public class EcuSetup : Serializer<EcuSetup>
     {
         private int _isoRequestDelay = 10;
