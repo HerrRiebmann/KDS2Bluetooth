@@ -10,3 +10,10 @@ Else it is not possible to upload a sketch or use the Serial Port.
 The solution is based on the need to test some values without having a bike present. It grew very fast and is not very flexible and clean coded.
 When I find some time, I will rewrite it and make the setup more dynamically to support different Service ID´s and add Formulars to fake PID values.
 But currently it will cover my needs and helped great through developing :)
+
+
+![ECU Emulator](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/ECU%20Emulation/Images/ECU%20Emulator.png)
+
+![ECU Emulator - Setup](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/ECU%20Emulation/Images/ECU%20Emulator%20Setup.png)
+
+![ECU Emulator - Register](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/ECU%20Emulation/Images/ECU%20Emulator%20Register.png)
