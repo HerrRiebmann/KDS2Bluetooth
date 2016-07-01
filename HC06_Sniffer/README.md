@@ -15,3 +15,5 @@ All results from my investiagtions where included into the [ECU Reader](https://
 * Arduino connected to PC via USB
 * Serial Monitor
 * App (*Smartphone, Tablet, PC, ect*) to read OBD II Data
+
+![Sniffer](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/HC06_Sniffer/Sniffer%20Screenshot.png)
