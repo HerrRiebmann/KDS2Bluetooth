@@ -46,10 +46,10 @@ This is controlled/setup via "AT"-commands. They describe the format how data is
 
 #### KDS-Communication:
 Connection to the kawasaki diagnostic system. How the Arduino speaks to the Bike.
-Based on the great work of Tom Mitchell (*Kawaduino*).
+Based on the great work of Tom Mitchell (*[Kawaduino](https://bitbucket.org/tomnz/kawaduino/overview)*).
 
 #### Translations:
-Every ELM327 compatible device is using the stock [OBD II protocol] (https://en.wikipedia.org/wiki/OBD-II_PIDs) and its Protocol ID´s (*PID*).
+Every ELM327 compatible device is using the stock [OBD II protocol](https://en.wikipedia.org/wiki/OBD-II_PIDs) and its Protocol ID´s (*PID*).
 The bike is also using a similar communication. But the PID´s doesn´t mean the same, nor is the calcualtion equal.
 In that conclusion, the requested PID has to be translated into the according pendant and the result has to be calculated,
 to fit into the OBD ranges.
@@ -72,6 +72,8 @@ to fit into the OBD ranges.
 
 [Kawasaki Z750r Black edition](http://www.kawasaki.de/de/products/sportler/2012/z750r_black_edition/overview?Uid=05D9WlhZXFhaWVhZXFpdWl1aUV5ZWF9eRgwNRSwt)
 ### My Videos (*more to come*)
-[Demo](https://www.youtube.com/watch?v=MKdlcnXseew&feature=youtu.be)
+[![Demo](https://img.youtube.com/vi/MKdlcnXseew/0.jpg)](https://www.youtube.com/watch?v=MKdlcnXseew&feature=youtu.be)
 
-[YouTube Channel](https://www.youtube.com/channel/UCT6vRSUNHg8XRwPQtbxhyKw)
+[![Racetrack Mettet](https://img.youtube.com/vi/7NzQdNrY6Ro/0.jpg)](https://youtu.be/7NzQdNrY6Ro?t=36s)
+
+[My YouTube Channel](https://www.youtube.com/channel/UCT6vRSUNHg8XRwPQtbxhyKw)
