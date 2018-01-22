@@ -13,3 +13,6 @@ This is the predecessor of [Unified Diagnostic Services](https://en.wikipedia.or
 * Last but not least, the pinout from the plug:
 ![Pin Layout](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/Documentation/Pin%20Layout.jpg)
 Possible Source of supply [here](http://www.corsa-technic.com/item.php?item_id=341)
+
+* Often asked for a schmeatic of connecting the L9637D Serial to K-Line converter:
+![L9631DSchematic](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/Documentation/Schematic%20L9637D.png)
