@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>H:\TMK\klineboard\klineboard\klineboard.sch</source>
+    <date>2/4/2020 1:28:04 AM</date>
+    <tool>Eeschema (5.1.5)-3</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>klineboard.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="IC102">
+      <value>L9637D</value>
+      <footprint>L9637D:SO08</footprint>
+      <datasheet>unknown</datasheet>
+      <fields>
+        <field name="Field4">L9637D</field>
+        <field name="Field6">56P8926</field>
+        <field name="digikey">497-10483-2-ND</field>
+        <field name="website">https://www.digikey.co.nz/product-detail/en/stmicroelectronics/E-L9637D013TR/497-10483-2-ND/1852146</field>
+      </fields>
+      <libsource lib="L9637D" part="L9637D" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E37D758</tstamp>
+    </comp>
+    <comp ref="C106">
+      <value>10nf</value>
+      <footprint>Capacitors_SMD:C_0603_HandSoldering</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="digikey">490-GCM1885C1H100FA16DDKR-ND</field>
+        <field name="website">https://www.digikey.co.nz/product-detail/en/murata-electronics/GCM1885C1H100FA16D/490-GCM1885C1H100FA16DDKR-ND/11567162</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E38533E</tstamp>
+    </comp>
+    <comp ref="C107">
+      <value>10nf</value>
+      <footprint>Capacitors_SMD:C_0603_HandSoldering</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="digikey">490-GCM1885C1H100FA16DDKR-ND</field>
+        <field name="website">https://www.digikey.co.nz/product-detail/en/murata-electronics/GCM1885C1H100FA16D/490-GCM1885C1H100FA16DDKR-ND/11567162</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E3892A6</tstamp>
+    </comp>
+    <comp ref="J2">
+      <value>TX/RX</value>
+      <footprint>Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E392AF8</tstamp>
+    </comp>
+    <comp ref="J3">
+      <value>5V/GND</value>
+      <footprint>Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E3941C9</tstamp>
+    </comp>
+    <comp ref="R101">
+      <value>510ohms</value>
+      <footprint>Resistors_SMD:R_0603_HandSoldering</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Note">Pull-up for K-Line</field>
+        <field name="digikey">P123050TR-ND</field>
+        <field name="website">https://www.digikey.co.nz/product-detail/en/panasonic-electronic-components/ERJ-1GNF5100C/P123050TR-ND/2036078</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E383EC1</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>K-Line</value>
+      <footprint>Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5E392754</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector_Generic" part="Conn_01x02">
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x02</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R">
+      <description>Resistor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="L9637D" part="L9637D">
+      <fields>
+        <field name="Reference">IC</field>
+        <field name="Value">L9637D</field>
+        <field name="Footprint">SO08</field>
+        <field name="Datasheet">unknown</field>
+        <field name="Field4">L9637D</field>
+        <field name="Field6">56P8926</field>
+      </fields>
+      <pins>
+        <pin num="1" name="RX" type="output"/>
+        <pin num="2" name="LO" type="output"/>
+        <pin num="3" name="VCC" type="power_in"/>
+        <pin num="4" name="TX" type="input"/>
+        <pin num="5" name="GND" type="power_in"/>
+        <pin num="6" name="K" type="input"/>
+        <pin num="7" name="VS" type="power_in"/>
+        <pin num="8" name="LI" type="input"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector_Generic">
+      <uri>D:\Program Files\KiCad\share\kicad\library/Connector_Generic.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>D:\Program Files\KiCad\share\kicad\library/Device.lib</uri>
+    </library>
+    <library logical="L9637D">
+      <uri>H:/TMK/klineboard/klineboard/L9637D/L9637D.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="Net-(C107-Pad2)">
+      <node ref="C107" pin="2"/>
+      <node ref="J1" pin="2"/>
+    </net>
+    <net code="2" name="/GND">
+      <node ref="IC102" pin="5"/>
+      <node ref="C106" pin="2"/>
+      <node ref="J3" pin="2"/>
+    </net>
+    <net code="3" name="Net-(IC102-Pad8)">
+      <node ref="IC102" pin="8"/>
+    </net>
+    <net code="4" name="/TXD">
+      <node ref="IC102" pin="4"/>
+      <node ref="J2" pin="1"/>
+    </net>
+    <net code="5" name="/RXD">
+      <node ref="J2" pin="2"/>
+      <node ref="IC102" pin="1"/>
+    </net>
+    <net code="6" name="Net-(IC102-Pad2)">
+      <node ref="IC102" pin="2"/>
+    </net>
+    <net code="7" name="/5V">
+      <node ref="J3" pin="1"/>
+      <node ref="C106" pin="1"/>
+      <node ref="IC102" pin="3"/>
+    </net>
+    <net code="8" name="/VIN">
+      <node ref="R101" pin="2"/>
+      <node ref="IC102" pin="7"/>
+    </net>
+    <net code="9" name="/K-LINE">
+      <node ref="C107" pin="1"/>
+      <node ref="R101" pin="1"/>
+      <node ref="J1" pin="1"/>
+      <node ref="IC102" pin="6"/>
+    </net>
+  </nets>
+</export>
