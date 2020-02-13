@@ -7,6 +7,9 @@ This PCB follow the schematic which included in this project
 Thanks for HerrRiebmann's work
 
 Board overview
+
 https://github.com/spcrxj/KDS2Bluetooth/blob/master/klineboard/board.png
+
+https://github.com/spcrxj/KDS2Bluetooth/blob/master/klineboard/3d.png
 
 
