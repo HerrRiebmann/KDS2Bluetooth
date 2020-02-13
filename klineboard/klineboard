@@ -1,0 +1,8 @@
+Reference, Value, Footprint, Datasheet, Field4, Field6, digikey, website, Note
+"IC102","L9637D","L9637D:SO08","unknown","L9637D","56P8926","497-10483-2-ND","https://www.digikey.co.nz/product-detail/en/stmicroelectronics/E-L9637D013TR/497-10483-2-ND/1852146",""
+"C106","10nf","Capacitors_SMD:C_0603_HandSoldering","~","","","490-GCM1885C1H100FA16DDKR-ND","https://www.digikey.co.nz/product-detail/en/murata-electronics/GCM1885C1H100FA16D/490-GCM1885C1H100FA16DDKR-ND/11567162",""
+"C107","10nf","Capacitors_SMD:C_0603_HandSoldering","~","","","490-GCM1885C1H100FA16DDKR-ND","https://www.digikey.co.nz/product-detail/en/murata-electronics/GCM1885C1H100FA16D/490-GCM1885C1H100FA16DDKR-ND/11567162",""
+"J2","TX/RX","Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm","~"
+"J3","5V/GND","Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm","~"
+"R101","510ohms","Resistors_SMD:R_0603_HandSoldering","~","","","P123050TR-ND","https://www.digikey.co.nz/product-detail/en/panasonic-electronic-components/ERJ-1GNF5100C/P123050TR-ND/2036078","Pull-up for K-Line"
+"J1","K-Line","Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm","~"
