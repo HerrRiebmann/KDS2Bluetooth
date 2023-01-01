@@ -2,12 +2,17 @@
 Kawasaki Diagnostic Service Reader via Bluetooth
 
 Using an Arduino (*Nano*) to read parameter from a Kawasaki motorcycle by it´s diagnostic system.
-Requests can be submittet via bluetooth, by any ELM327 compatible device/application. Such as Android App [Torque Lite](https://play.google.com/store/apps/details?id=org.prowl.torque&hl=de),
+Requests can be submittet via bluetooth, by any ELM327 compatible device/application. Such as Android App [Torque Lite](https://play.google.com/store/apps/details?id=org.prowl.torque&hl=de), [Car Scanner ELM OBD2](https://play.google.com/store/apps/details?id=com.ovz.carscanner&hl=de), 
 action cameras like "Garmin Virb X / XE" or other solutions, which are able to communicate with an OBD II Bluetooth Adapter.
+
+# Update 2023/01/01
+My latest so called "Bike Diagnostic System" version for Kawasaki & Suzuki. It´s almost compatible to any ELM327 App and supports nearly any KDS and SDS bike.
+It has tons of settings, parameter, modes and an error log.
 
 ### Repository
 * [ECU Emulation](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/ECU%20Emulation) - Visual Studio C# Project to emulate the ECU
-* [ECU_Reader](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/ECU_Reader)    - Arduino Sketch -> Full solution
+* [Bike_Diagnostic_System](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/Bike_Diagnostic_System)    - Arduino Sketch -> Full solution (new)
+* [ECU_Reader](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/ECU_Reader)    - Arduino Sketch -> Full solution (old)
 * [HC06_Sniffer](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/HC06_Sniffer)  - Arduino Sketch to find out Bluetooth AT-commands
 * [Documentation](https://github.com/HerrRiebmann/KDS2Bluetooth/tree/master/Documentation) - OBD / KDS PID-List, Schematics, ect.
 
@@ -34,7 +39,6 @@ In my case KWP2000 (*ISO-14230*)
 
 The L9637 converts the one wire K-Line bidirectional into a serial signal (Rx & Tx).
 Connect Rx to Rx, Tx to Tx and VCC to 5V Output from Arduino. VCC, Gnd and K-Line to the Bike. A PullUp-resistor is needed between power supply (VCC) and K-Line!
-The capacitor reduces the 12V (*or more while charging*) to 6V to supply the Arduino VIN. 
 HC-06 is a slave Bluetooth device. If needed, you can use a HC-05 master.
 
 ### Software:
@@ -56,21 +60,18 @@ to fit into the OBD ranges.
 
 
 ### The most influential Tutorials/sources:
-[KDS Protocol](http://ecuhacking.activeboard.com/t56234221/kds-protocol/?page=1&sort=oldestFirst)
+[KDS Protocol](https://web.archive.org/web/20201202041417/https://ecuhacking.activeboard.com/t56234221/kds-protocol/) (inactive ecuhacking.activeboard via archive.org)
 
-[Kawaduino](https://bitbucket.org/tomnz/kawaduino/overview)
+[Kawaduino](https://github.com/tomnz/kawaduino)
 
-[ELM327 AT Commands](http://www.elmelectronics.com/ELM327/AT_Commands.pdf)
+[ELM327 AT Commands](https://www.elmelectronics.com/wp-content/uploads/2016/07/ELM327DS.pdf)
 
 [OBDuino](https://en.wikipedia.org/wiki/OBDuino)
 
 ### My Cameras:
 [Garmin Virb XE](http://virb.garmin.com/en-US/virb-xe)
 [Garmin Virb X](http://virb.garmin.com/en-US/virb-x)
-### My Bike:
-[Gallery](http://www.z1000-forum.de/garage/vehicle/6689-kawasaki-z750r-black-edition/?tab=images)
 
-[Kawasaki Z750r Black edition](http://www.kawasaki.de/de/products/sportler/2012/z750r_black_edition/overview?Uid=05D9WlhZXFhaWVhZXFpdWl1aUV5ZWF9eRgwNRSwt)
 ### My Videos (*more to come*)
 [![Demo](https://img.youtube.com/vi/MKdlcnXseew/0.jpg)](https://www.youtube.com/watch?v=MKdlcnXseew&feature=youtu.be)
 
