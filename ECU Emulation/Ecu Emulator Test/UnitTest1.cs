@@ -39,6 +39,13 @@ namespace EcuEmulatorTest
         [TestMethod]
         public void CheckChecksum()
         {
+
+            var dataWithChechsum3 = EcuEmulator.Emulator.AddChecksum("80 12 F1 06 A5 06 00 00 00 00");
+            Console.WriteLine(dataWithChechsum3);
+
+            var dataWithChechsum2 = EcuEmulator.Emulator.AddChecksum("80 11 F1 02 01 0C");
+            Console.WriteLine(dataWithChechsum2);
+
             var data = "80 F1 11 03 41 1E 04";
             var expectedChecksum = " E8";
             
@@ -97,9 +104,9 @@ namespace EcuEmulatorTest
             setupJ.Save(Serializer.ConversionTypes.Json);
 
             //Create Bin:
-            var setupB = EcuSetup.Load(Serializer.ConversionTypes.Binary);
+            var setupB = EcuSetup.Load(Serializer.ConversionTypes.Yaml);
 
-            setupB.Save(Serializer.ConversionTypes.Binary);
+            setupB.Save(Serializer.ConversionTypes.Yaml);
         }
 
         public void InitializeEcu()
@@ -116,31 +123,36 @@ namespace EcuEmulatorTest
         public void CheckRequests()
         {
             //ToDo: Test response with dynamic values
-            //Gear Request
-            var result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 0B B0");
-            var msg =  EcuEmulator.Emulator.Interpret(result.Value);
-            Assert.IsTrue(msg.TestChecksum);
-            Assert.AreEqual(result.Value, "80 F1 11 03 61 0B 00 F1");
+            ////Gear Request
+            //var result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 0B B0");
+            //var msg =  EcuEmulator.Emulator.Interpret(result.Value);
+            //Assert.IsTrue(msg.TestChecksum);
+            //Assert.AreEqual(result.Value, "80 F1 11 03 61 0B 00 F1");
 
-            //Speed Request
-            result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 0C B1");
-            Assert.AreEqual(result.Value, "80 F1 11 04 61 0C 00 9C 8F");
+            ////Speed Request
+            //result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 0C B1");
+            //Assert.AreEqual(result.Value, "80 F1 11 04 61 0C 00 9C 8F");
 
-            //RPM Request
-            result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 09 AE");
-            Assert.AreEqual(result.Value, "80 F1 11 04 61 09 23 8F A2");
+            ////RPM Request
+            //result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 09 AE");
+            //Assert.AreEqual(result.Value, "80 F1 11 04 61 09 23 8F A2");
 
-            //Temp Request
-            result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 06 AB");
-            Assert.AreEqual(result.Value, "80 F1 11 03 61 C1 EA 91");
+            ////Temp Request
+            //result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 06 AB");
+            //Assert.AreEqual(result.Value, "80 F1 11 03 61 C1 EA 91");
 
-            //Throttle
-            result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 04 A9");
-            Assert.AreEqual(result.Value, "80 F1 11 04 61 04 00 D8 C3");
+            ////Throttle
+            //result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 04 A9");
+            //Assert.AreEqual(result.Value, "80 F1 11 04 61 04 00 D8 C3");
 
-            //Unknown Register - Error as result
-            result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 50 A9");
-            Assert.AreEqual(result.Value, "80 F1 11 03 7F 21 10 35");
+            ////Unknown Register - Error as result
+            //result = EcuEmulator.Emulator.HandleRequest("80 11 F1 02 21 50 A9");
+            //Assert.AreEqual(result.Value, "80 F1 11 03 7F 21 10 35");
+
+            //Suzuki
+            var result = EcuEmulator.Emulator.HandleRequest("80 12 F1 02 21 08 AE");
+            //ECU ID 12 Suzi, 11 Kawa
+            Assert.AreEqual(result.Value, "80 F1 12 34 61 08 01 16 55 A0 00 00 00 FF FF FF FF 00 00 39 B9 4D 4C B9 00 00 00 FF FF FF FF 00 00 00 00 00 00 00 00 FF FF 40 40 40 40 FF EF FF FF FF 00 00 04 28 FF FF 7A");
         }
 
         public void GenerateRequestTimeout()

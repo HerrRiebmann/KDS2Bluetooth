@@ -1,0 +1,59 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Data="clr-namespace:EcuEmulator.Data;assembly=EcuEmulator" x:Class="Hex_Calculator.DetailView"
+        mc:Ignorable="d"
+        Title="DetailView" Height="595" Width="410" Loaded="Window_Loaded" Icon="vspc-icon-AllSize.ico" Closing="Window_Closing">
+    <Window.Resources>
+        <CollectionViewSource x:Key="calculationResultViewSource" d:DesignSource="{d:DesignInstance {x:Type Data:CalculationResult}, CreateList=True}"/>
+    </Window.Resources>
+    <Grid DataContext="{StaticResource calculationResultViewSource}">
+
+        <DataGrid x:Name="calcResultDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" Margin="0,0,0,0.5" ItemsSource="{Binding}" EnableRowVirtualization="True" AutoGenerateColumns="False"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CanUserAddRows="False">
+        <DataGrid.Columns>
+            <DataGridTextColumn x:Name="descriptionColumn" Width="200" Header="Description" Binding="{Binding Description, Mode=OneWay}"/>
+            <DataGridTextColumn x:Name="valueColumn" Width="60" Header="Value" Binding="{Binding ResultText, Mode=OneWay}"/>
+            <DataGridTextColumn x:Name="unitColumn" Width="50" Header="Unit" Binding="{Binding Unit, Mode=OneWay}"/>
+            <DataGridTextColumn x:Name="hexValueColumn" Width="50" Header="Hex" Binding="{Binding HexValue, Mode=OneWay}"/>
+            <DataGridTextColumn x:Name="formulaColumn" Width="*" Header="Formula" Binding="{Binding Formula, Mode=OneWay}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!--<ListView x:Name="calculationResultListView" SelectionMode="Single" Margin="0,0,0,0.5" ItemsSource="{Binding}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn x:Name="descriptionColumn" Width="200" Header="Description">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="3,-1,-6,-1" Text="{Binding Description, Mode=OneWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="valueColumn" Width="80" Header="Value">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding ResultText, Mode=OneWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="unitColumn" Width="80" Header="Unit">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Margin="-6,-1" Text="{Binding Unit, Mode=OneWay}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+            <ListView.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Control.HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Control.VerticalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>-->
+
+    </Grid>
+</Window>

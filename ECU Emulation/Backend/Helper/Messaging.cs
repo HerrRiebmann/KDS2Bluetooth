@@ -11,7 +11,7 @@ namespace Backend.Helper
 
         public enum Types
         {
-            Incoming, Outgoing, Normal, Warning, Error, Info, Debug
+            Incoming, Outgoing, Normal, Warning, Error, Info, Debug, Echo
         }
 
         public enum Caller
@@ -29,7 +29,7 @@ namespace Backend.Helper
             set { _messageList = value; }
         }
 
-        private static string _typeFilter = "Incoming,Outgoing,Warning,Error";
+        private static string _typeFilter = "Incoming,Outgoing,Warning,Error,Echo";
         public static string TypeFilter
         {
             get { return _typeFilter; }
@@ -65,12 +65,14 @@ namespace Backend.Helper
 
         public static void WriteLine(Message message)
         {
-            if (!String.IsNullOrEmpty(CallerFilter) && !CallerFilter.Contains(message.Caller.ToString()))
-                return;
+            if (!message.Type.ToString().Equals("Debug"))
+            {
+                if (!String.IsNullOrEmpty(CallerFilter) && !CallerFilter.Contains(message.Caller.ToString()))
+                    return;
 
-            if (!String.IsNullOrEmpty(TypeFilter) && !TypeFilter.Contains(message.Type.ToString()))
-                return;
-
+                if (!String.IsNullOrEmpty(TypeFilter) && !TypeFilter.Contains(message.Type.ToString()))
+                    return;
+            }
             //Dispatcher.CurrentDispatcher.Invoke((Action)(() =>
             //{
                 lock (MessageList)

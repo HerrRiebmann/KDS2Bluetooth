@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using EcuEmulator.Data;
 using SerialComPort.Data;
 
@@ -30,6 +31,7 @@ namespace EcuEmulatorForm
             InitializeComponent();
 
             InitializeComPort();
+            InititalizeEcuSetup();
         }
 
         private void InitializeComPort()
@@ -49,6 +51,12 @@ namespace EcuEmulatorForm
             handshakeComboBox.SelectedItem = _comSetup.Handshake;
             parityComboBox.SelectedItem = _comSetup.Parity;
             stopBitsComboBox.SelectedItem = _comSetup.StopBits;
+        }
+
+        private void InititalizeEcuSetup()
+        {
+            bikeComboBox.ItemsSource = Enum.GetValues(typeof(Bikes));
+            bikeComboBox.SelectedItem = _ecuSetup.Bike;
         }
         
         private void Window_Loaded(object sender, RoutedEventArgs e)

@@ -27,7 +27,8 @@ namespace EcuEmulator
             ChecksumNotOk,
             RegisterUnknown,
             Error,
-            Ok
+            Ok,
+            Echo
         }
 
         private static EcuSetup _setup;
@@ -50,6 +51,13 @@ namespace EcuEmulator
             set { _status = value; }
         }
         
+        private static Calculations _calculations;
+        public static Calculations Calculations
+        {
+            get { return _calculations ?? (_calculations = Initialization.Calculations.Init()); }
+            set { _calculations = value; }
+        }
+
         /// <summary>
         /// Checks Request by RequestComplete()
         /// Answeres Request with AnswerRequest()
@@ -115,7 +123,6 @@ namespace EcuEmulator
                             result.Type = respType;
                             return result;
                         }
-
                         result.Value = AnswerRequest(data);
                         if (String.IsNullOrEmpty(result.Value))
                         {
@@ -124,6 +131,13 @@ namespace EcuEmulator
                             result.Type = ResponseType.Error;
                             return result;
                         }
+                        result.Type = ResponseType.Ok;
+                        return result;
+                    }
+                    if (data.Length == 14)
+                    {
+                        var respType = CheckValuesComplete(ref data);
+                        result.Value = AnswerRequest(data);
                         result.Type = ResponseType.Ok;
                         return result;
                     }
@@ -152,6 +166,8 @@ namespace EcuEmulator
 
         public static string AnswerRequest(string data)
         {
+            if (_setup.Echo)
+                Messaging.WriteLine(data, Messaging.Types.Echo, Messaging.Caller.Emulator);
             var hexValuesSplit = data.Split(' ');
             var msgSize = Int32.Parse(hexValuesSplit[3], NumberStyles.AllowHexSpecifier);
             //Init Request:
@@ -159,6 +175,12 @@ namespace EcuEmulator
             {
                 Setup.EcuInitialized = true;
                 Status.Init = true;
+                //If not needed, just overwrite:
+                if(!Setup.DiagnosticNeeded)
+                {
+                    Setup.DiagnosticsMode = true;
+                    Status.Diagnostic = true;
+                }
                 var response = CreateInitResponse();
                 Messaging.WriteLine(response, Messaging.Types.Outgoing, Messaging.Caller.Emulator, "ECU Initialized");
                 return response;
@@ -171,7 +193,19 @@ namespace EcuEmulator
                 return CreateErrorResponse();
             }
 
+            
+
+            //Message Format without Length Information
+            //SID only
+            if (data.StartsWith("81"))
+            {
+                var register = Register.Items.FirstOrDefault(r => r.Parameter == Converter.HexToByte(hexValuesSplit[3])[0]);
+                return CreateAnswer(register); ;
+            }
+
             var mode = Converter.HexToByte(hexValuesSplit[4])[0];
+            if(hexValuesSplit.Length < 6)
+                return String.Empty;
             var value = Converter.HexToByte(hexValuesSplit[5])[0];
 
             foreach (var register in Register.Items)
@@ -193,6 +227,10 @@ namespace EcuEmulator
             return CreateErrorResponse();
         }
 
+        //ToDo: Temporary hack:
+        private static int _throttlePosSensorValue = 0;
+        private static int _temp = -48;
+
         private static string CreateAnswer(Register register)
         {
             //80 F1 11 03 61 0B 01 F2
@@ -207,10 +245,15 @@ namespace EcuEmulator
             var r = new Random();
             var i = 0;
             var calc = 0;
-            //Result is valid + Requested Parameter
-            var responseValues = Converter.ByteToHex(_setup.PositiveReply) + " " +
-                                 Converter.ByteToHex(register.Parameter) + " ";
 
+            if (register == null)
+                return CreateErrorResponse(); ;
+            
+            //Result is valid + Requested Parameter (SID + 0x40)
+            var responseValues = string.Empty;
+            if(register.PidType != PidTypes.StartDiagnostic && register.PidType != PidTypes.KeepAlive)
+            responseValues = Converter.ByteToHex(Convert.ToByte(register.Mode + _setup.PositiveReply)) + " " +
+                                 Converter.ByteToHex(register.Parameter) + " ";            
             //Return static Values (Except Start Diagnostic)
             if (register.PidType != PidTypes.StartDiagnostic && register.ResponseStaticValues != null && register.ResponseStaticValues.Length > 0)
             {
@@ -239,9 +282,20 @@ namespace EcuEmulator
                         responseValues = responseValues.Remove(responseValues.Length - 1, 1);
                         break;
                     case PidTypes.EngineCoolantTemperature:
+                        i = r.Next(register.ResponseMin, register.ResponseMax);
+                        calc = (int) (i*1.6 + 48); // Convert to Fahrenheit
+                        responseValues += calc.ToString("X").PadLeft(2, '0').ToUpper();
+                        break;
                     case PidTypes.IntakeAirTemperature:
                         //"61 C1 EA" == 116,2°
-                        i = r.Next(register.ResponseMin, register.ResponseMax);
+                        //i = r.Next(register.ResponseMin, register.ResponseMax);
+                        if (_temp < register.ResponseMin || _temp > register.ResponseMax)
+                            _temp = register.ResponseMin;
+                        else
+                            _temp+=1;
+                        i = _temp;
+                        Console.WriteLine("{0}: {1}", i, i.ToString("X").PadLeft(4, '0').ToUpper().Insert(2, " "));
+
                         //calc = (int)((i + 48) / 1.6); // Convert to Fahrenheit
                         calc = (int) (i*1.6 + 48); // Convert to Fahrenheit
                         responseValues += calc.ToString("X").PadLeft(2, '0').ToUpper();
@@ -250,12 +304,26 @@ namespace EcuEmulator
                         //   0 % "61 04 00 D8";
                         // 100 % "61 04 03 7f"
                         i = r.Next(register.ResponseMin, register.ResponseMax);
+
+                        var step = 10;
+                        if (_throttlePosSensorValue < register.ResponseMin ||
+                            _throttlePosSensorValue + step > register.ResponseMax)
+                            _throttlePosSensorValue = register.ResponseMin;
+                        else
+                            _throttlePosSensorValue += step;
+                        i = _throttlePosSensorValue;
+
+                        var y = ((i - register.ResponseMin) * 100) / (register.ResponseMax - register.ResponseMin) * 255 / 100;
+
+                        //Console.WriteLine("{0}: {1}\t{2}\t{3}", i, i.ToString("X").PadLeft(4, '0').ToUpper().Insert(2, " "), y, (100/255)*y);
+
                         //responseValues += (i/100).ToString("X").PadLeft(2, '0').ToUpper();
                         //responseValues += " " + (i%100).ToString("X").PadLeft(2, '0').ToUpper();
                         //2 Byte:
                         responseValues += i.ToString("X").PadLeft(4, '0').ToUpper().Insert(2," ");
                         break;
                     case PidTypes.BarometricInletPressure:
+                    case PidTypes.AtmosphericPressure:
                         i = r.Next(register.ResponseMin, register.ResponseMax);
                         responseValues += i.ToString("X").PadLeft(2, '0').ToUpper();
                         responseValues += " ";
@@ -286,7 +354,7 @@ namespace EcuEmulator
                     case PidTypes.TotalOperatingHours:
                         //Calc Total Seconds
                         i = r.Next(register.ResponseMin, register.ResponseMax);
-                        responseValues += AddSpacesToString(i.ToString("X2"));
+                        responseValues += AddSpacesToString(i.ToString("X8"));
                         break;
                     case PidTypes.EcuId:
                         responseValues = "5A 32 31 31 37 35 2D 30 38 36 31";
@@ -326,7 +394,7 @@ namespace EcuEmulator
             }
 
             var responseValueSize = responseValues.Split(' ').Length;
-            var response = String.Format("{0} {1:X} {2:X} {3} ", 80, Setup.SenderAdress, Setup.EcuAdress, responseValueSize.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0').ToUpper());
+            var response = String.Format("{0} {1:X} {2:X} {3} ", 80, Setup.SenderAdress, Setup.EcuAdress, responseValueSize.ToString("X").PadLeft(2, '0').ToUpper());
             response += responseValues;
             response = AddChecksum(response);
             Status.LastResponse = response;
@@ -440,7 +508,11 @@ namespace EcuEmulator
                             data = data.Substring(0, counter * 3 - 1);
                             if (CheckChecksum(data))
                             {
-                                Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator, "ECU Initialization");
+                                if(msgSize.Equals(129))
+                                    Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator, "ECU Initialization");
+                                //3E not 62...
+                                if (msgSize.Equals(62))
+                                    Messaging.WriteLine(data, Messaging.Types.Incoming, Messaging.Caller.Emulator, "Keepalive");
                                 return ResponseType.Ok;
                             }
                             return ResponseType.ChecksumNotOk;
@@ -525,8 +597,13 @@ namespace EcuEmulator
                 //Skip Checksum
                 if (String.IsNullOrEmpty(hex))
                     continue;
-
-                hexByte[i++] = Convert.ToByte(hex, 16);
+                if (hex.Length == 2)
+                    hexByte[i++] = Convert.ToByte(hex, 16);
+                else
+                {
+                    hexByte[i++] = Convert.ToByte(hex.Substring(0,2), 16);
+                    Messaging.WriteLine(hex, Messaging.Types.Error, Messaging.Caller.Emulator, $"AddChecksum() Hex Length wrong ({hex.Length})!");
+                }
             }
             byte b = CalcCheckSum(hexByte);
             var bStr = Convert.ToString(b, 16).PadLeft(2, '0').ToUpper();
@@ -607,16 +684,15 @@ namespace EcuEmulator
             list.Items.Add(new Register(PidTypes.BarometricInletPressure, 0x21, 0x05, "Intake Air Pressure", 161, 210, 1)); //2 Byte value Double precision
             list.Items.Add(new Register(PidTypes.EngineCoolantTemperature, 0x21, 0x06, "Water Temperature", 50, 120, 1));
             list.Items.Add(new Register(PidTypes.IntakeAirTemperature, 0x21, 0x07, "Intake Air Temperature", -20, 45, 1));
-            //list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", 0, 100, 1));
-            //ToDo: dynamic
-            list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", 200,210,1));//206 / 2 = kPa = 38 Meter above NN
+            
+            if(_setup.Bike != Bikes.Suzuki)
+                list.Items.Add(new Register(PidTypes.AtmosphericPressure, 0x21, 0x08, "Atmospheric Pressure", 200,210,1));//206 / 2 = kPa = 38 Meter above NN
+            else
+                list.Items.Add(new Register(PidTypes.Custom, 0x21, 0x08, "Suzuki All", new byte[] { 0x01, 0x16, 0x55, 0xA0, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x39, 0xB9, 0x4D, 0x4C, 0xB9, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x40, 0x40, 0x40, 0x40, 0xFF, 0xEF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x04, 0x28, 0xFF, 0xFF }));
             list.Items.Add(new Register(PidTypes.RotationsPerMinute, 0x21, 0x09, "Rotations per minute", 1000, 13500, 1));
             list.Items.Add(new Register(PidTypes.BatteryVoltage, 0x21, 0x0A, "Battery Voltage", 155, 185, 1));//12 - 14,5 V
             list.Items.Add(new Register(PidTypes.GearPosition, 0x21, 0x0B, "Gear", 0, 6, 1));
             list.Items.Add(new Register(PidTypes.Speed, 0x21, 0x0C, "Speedometer", 0, 240, 1));
-
-            //Without Service ID (not empty, without)
-            //list.Items.Add(new Register(PidTypes.EcuId, 0x00, 0x1A, "ECU ID", new byte[] { 0x50, 0x80 }));
             
             //Total operating Hours between: 39h 54min 6sec - 71h 8min 54sec
             list.Items.Add(new Register(PidTypes.TotalOperatingHours, 0x21, 0x44, "Total Operating Hours", 143646, 256134, 1));
@@ -629,6 +705,17 @@ namespace EcuEmulator
             list.Items.Add(new Register(PidTypes.FuelCutMode, 0x21, 0x6A, "Fuel cut Mode (coasting/enginebreaking)", 0, 1, 1));
             list.Items.Add(new Register(PidTypes.EngineStartMode, 0x21, 0x6B, "Engine starting mode", 0, 1, 1));
             list.Items.Add(new Register(PidTypes.EcuId, 0x00, 0x1A, "ECU ID", new byte[] { 0x32, 0x31, 0x32, 0x31, 0x35, 0x2D, 0x30, 0x33, 0x34, 0x31}));
+            list.Items.Add(new Register(PidTypes.EcuId, 0x00, 0x1A, "ECU ID 1", new byte[] { 0x33, 0x32, 0x39, 0x32, 0x30, 0x2D, 0x32, 0x31, 0x48, 0x35, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00 }));
+            list.Items.Add(new Register(PidTypes.KeepAlive, 0x00, 0x3E, "Keep Alive", new byte[] { 0x7E }));
+            list.Items.Add(new Register(PidTypes.Custom, 0x21, 0x41, "DTC 1", new byte[]{ 0x03, 0x55, 0xA0, 0xFF, 0x00, 0x00, 0x39, 0xBA, 0x5B, 0x00, 0x09, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x93 }));
+            list.Items.Add(new Register(PidTypes.Custom, 0x21, 0x51, "DTC 2", new byte[] { 0x03, 0x53, 0xA0, 0xFF, 0x4A, 0xBD, 0x62, 0xAD, 0xB8, 0x03, 0x8F }));
+
+            //Freezed Frames
+            list.Items.Add(new Register(PidTypes.Custom, 0x21, 0x56, "No. of Errors", 3, 3, 1));
+            list.Items.Add(new Register(PidTypes.Custom, 0x12, 0x01, "Freezed Frame 1", new byte[] { 0x01, 0x10, 0x02, 0x01, 0x54}));
+            list.Items.Add(new Register(PidTypes.Custom, 0x12, 0x02, "Freezed Frame 2", new byte[] { 0x02, 0x01, 0x15, 0x01, 0x54 }));
+            list.Items.Add(new Register(PidTypes.Custom, 0x12, 0x03, "Freezed Frame 3", new byte[] { 0x03, 0x01, 0x15, 0x01, 0x54 }));
+            list.Items.Add(new Register(PidTypes.Custom, 0x18, 0x00, "No. of DTC", new byte[] { 0x04, 0x03, 0x51, 0xA0, 0x03, 0x53, 0xA0, 0x03, 0x54, 0xA0, 0x16, 0x55, 0xA0 }));
             return list;
         }
 
