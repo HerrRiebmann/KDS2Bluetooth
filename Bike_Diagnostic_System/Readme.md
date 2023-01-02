@@ -1,6 +1,9 @@
 # Bike Diagnostic System
 Suzuki and Kawasaki compatible solution.
 
+To setup the parameter, read or erase the error log, I can recommend the Android App [Serial Bluetooth Terminal](https://play.google.com/store/apps/details?id=de.kai_morich.serial_bluetooth_terminal). It allows easy communication and shortcuts.
+See the possible commands and a screenshot at the [End](#xt-commands---custom-setupfunctions).
+
 ## AT Commands - ELM327 compatible
 | Type  | Command | Description | Answer | Function
 | ------------- | ------------- | ------------- | ------------- | ------------- |
@@ -39,6 +42,8 @@ Suzuki and Kawasaki compatible solution.
 |AT	|Z		|Reset/Restart	|ELM Version + OK	|ResetToDefault
 
 ## BT Commands - Bluetooth
+Regular HC-05 / 06 commands, which will be changed from "BT" to "AT" internally.
+Without having a seperate connection to access the AT-Mode, you just need to disconnect. The code will wait some seconds until you are disconnected and execute the command then. The result is temporarily stored and when you reconnect (after about ~5 seconds) you will get the reply.
 | Type  | Command | Description 
 | ------------- | ------------- | ------------- 
 |BT	|+ADDR		|Default Adress		
@@ -82,3 +87,6 @@ Suzuki and Kawasaki compatible solution.
 |XT	|T	0,1	|TestMode BT-Output		||PrintDebug
 |XT	|X	|optional Int	Testfunction for specific tests		||TestSpecific()
 |XT	|Z		|TestMode (ECU Id, DealerMode, All PID´s)		||TestBike()
+
+Example request to see all device infos `XTS` and the errorlog `XTE`.
+![Serial Terminal](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/Documentation/Serial%20Bluetooth%20Terminal.png)
