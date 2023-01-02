@@ -1,0 +1,162 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:data="clr-namespace:EcuEmulator.Data;assembly=EcuEmulator"
+        x:Class="Hex_Calculator.MainWindow"
+        mc:Ignorable="d"
+        Title="Diagnostic Hexadecimal Calculator / Reader" Height="545.711" Width="766.646" MinHeight="560" MinWidth="700" Loaded="Window_Loaded" DragOver="Window_DragOver"
+        AllowDrop="True" Drop="Window_Drop" Icon="vspc-icon-AllSize.ico" Closing="Window_Closing">
+    <Window.Resources>
+        <CollectionViewSource x:Key="calcViewSource" d:DesignSource="{d:DesignInstance {x:Type data:DataEntry}, CreateList=True}"/>
+    </Window.Resources>
+    <Grid DataContext="{StaticResource calcViewSource}" Margin="0,0,5.043,-0.509">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="102*" MinWidth="100"/>
+            <ColumnDefinition Width="655*" MinWidth="650"/>
+        </Grid.ColumnDefinitions>
+
+        <DataGrid x:Name="calcDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" Margin="10,405,9.5,26.009" ItemsSource="{Binding}" EnableRowVirtualization="True" AutoGenerateColumns="False"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.ColumnSpan="2" SelectionChanged="calcDataGrid_SelectionChanged" CanUserAddRows="False">            
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MsgSid}" Value="7F">
+                            <Setter Property="Background" Value="Red"></Setter>
+                        </DataTrigger>                        
+                    </Style.Triggers>
+                    <EventSetter Event="MouseDoubleClick" Handler="Row_DoubleClick"/>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn x:Name="msgNoColumn" Width="50" Header="No" Binding="{Binding MsgNo, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="hexStringColumn" Width="100" Header="Hex String" Binding="{Binding HexString, Mode=TwoWay}"/>
+                <DataGridTextColumn x:Name="msgFormatColumn" Width="SizeToHeader" Header="Format" Binding="{Binding MsgFormat, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgReceiverColumn" Width="SizeToHeader" Header="Receiver" Binding="{Binding MsgReceiver, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgSenderColumn" Width="SizeToHeader" Header="Sender" Binding="{Binding MsgSender, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgLengthColumn" Width="SizeToHeader" Header="Length" Binding="{Binding MsgLength, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgSidColumn" Width="SizeToHeader" Header="Sid" Binding="{Binding MsgSid, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgSidInvertedColumn" Width="SizeToHeader" Header="Inv" Binding="{Binding MsgSidInverted, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgPidColumn" Width="SizeToHeader" Header="Pid" Binding="{Binding MsgPid, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgDataColumn" Width="SizeToHeader" Header="Data" Binding="{Binding MsgData, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="msgChecksumColumn" Width="SizeToHeader" Header="Checksum" Binding="{Binding MsgChecksum, Mode=OneWay}"/>
+                <DataGridTextColumn x:Name="textColumn" Width="*" Header="Text" Binding="{Binding Text, Mode=OneWay}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid x:Name="calcDetailGrid" Margin="10,10,9.5,0" VerticalAlignment="Top" HorizontalAlignment="Stretch"  Height="390"  MinWidth="700" MinHeight="390"  Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="359"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+
+            </Grid.RowDefinitions>
+            <Label Content="Hex String:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center" Height="26" Width="67"/>
+            <Button x:Name="OpenButton" Grid.Column="1" HorizontalAlignment="Right" Margin="3,0,10,0" Grid.Row="0" VerticalAlignment="Center" Height="26" Width="26" Click="OpenButton_Click">
+                <DockPanel>
+                    <Image Source="../Resources/AddFile.png"/>
+                </DockPanel>
+            </Button>
+            <TextBox x:Name="hexStringTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding HexString, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" KeyDown="HexStringTextBox_KeyDown"/>
+            <Label Content="Hex Message:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="2" VerticalAlignment="Center" Height="26" Width="83"/>
+            <TextBox x:Name="hexMessageTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding HexMessage, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" IsReadOnly="True"/>
+
+            <Grid x:Name="MessageGrid" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,0,0,30" HorizontalAlignment="Stretch" Grid.RowSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Content="Format:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgFormatTextBox" Grid.Column="0" HorizontalAlignment="Left" Height="23" Margin="3,0,0,0" Grid.Row="1" Text="{Binding MsgFormat, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="60" IsReadOnly="True"/>
+                <Label Content="Receiver:" Grid.Column="1" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgReceiverTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgReceiver, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <Label Content="Sender:" Grid.Column="2" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgSenderTextBox" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgSender, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <Label Content="Length:" Grid.Column="3" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgLengthHexTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgLengthHex, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="60" IsReadOnly="True"/>
+                <TextBox x:Name="msgLengthTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="2" Text="{Binding MsgLength, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="60" IsReadOnly="True"/>
+                <Label Content="SID:" Grid.Column="4" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgSidTextBox" Grid.Column="4" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgSid, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <TextBox x:Name="msgSidInvertedTextBox" Grid.Column="4" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="2" Text="{Binding MsgSidInverted, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <Label Content="PID:" Grid.Column="5" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgPidTextBox" Grid.Column="5" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgPid, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <Label Content="Data:" Grid.Column="6" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgDataTextBox" Grid.Column="6" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgData, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="140" IsReadOnly="True"/>
+                <Label Content="Checksum:" Grid.Column="7" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="msgChecksumTextBox" Grid.Column="7" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="1" Text="{Binding MsgChecksum, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="80" IsReadOnly="True"/>
+                <TextBox x:Name="msgTimestampTextBox" Grid.Column="6" HorizontalAlignment="Left" Height="23" Margin="1,0,0,0" Grid.Row="2" Text="{Binding TimestampString, Mode=OneWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="140" IsReadOnly="True"/>
+            </Grid>
+
+            <Label Content="Pre Hex:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="5" VerticalAlignment="Center" Height="26" Width="53"/>
+            <TextBox x:Name="preHexTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,10,0" Grid.Row="6" Text="{Binding PreHex, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center"/>
+            <Label Content="Pre Text:" Grid.Column="1" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="5" VerticalAlignment="Center" Height="26" Width="54"/>
+            <TextBox x:Name="preTextTextBox" Grid.Column="1" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="6" Text="{Binding PreText, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center"/>
+
+            <Label Content="Post Hex:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="7" VerticalAlignment="Center" Height="26" Width="59"/>
+            <TextBox x:Name="postHexTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,10,0" Grid.Row="8" Text="{Binding PostHex, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center"/>
+            <Label Content="Post Text:" Grid.Column="1" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="7" VerticalAlignment="Center" Height="26" Width="59"/>
+            <TextBox x:Name="postTextTextBox" Grid.Column="1" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="8" Text="{Binding PostText, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center"/>
+
+            <Label Content="Msg Text:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="9" VerticalAlignment="Center" Height="26" Width="60"/>
+            <TextBox x:Name="msgTextTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,10,0" Grid.Row="10" Text="{Binding MsgText, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" IsReadOnly="True"/>
+            <Label Content="Msg Data Int:" Grid.Column="1" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="9" VerticalAlignment="Center" Height="26" Width="81"/>
+            <TextBox x:Name="msgDataIntTextBox" Grid.Column="1" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="10" Text="{Binding MsgDataInt, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" IsReadOnly="True"/>
+            <Label Content="Msg Data Binary:" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,0,0" Grid.Row="11" VerticalAlignment="Center" Height="26" Width="99"/>
+            <TextBox x:Name="msgDataBinaryTextBox" Grid.Column="0" HorizontalAlignment="Stretch" Height="23" Margin="3,0,9.603,0" Grid.Row="12" Grid.ColumnSpan="2" Text="{Binding MsgDataBinary, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" IsReadOnly="True"/>
+        </Grid>
+        <Button Margin="10,0,0,1" Content="Filter" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="21" MinHeight="21" Click="BtnFilter_Click"/>
+        <Button Margin="10,0,0,1" Content="Remove Duplicates" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnDistinct_Click" Height="21" MinHeight="21"/>
+        <Button Margin="150,0,0,1" Content="Incoming only" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnIncomingOnly_Click" Height="21" MinHeight="21"/>
+        <Button Margin="250,0,10,1" Content="Cleanup File" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnCleanup_Click" Height="21" MinHeight="21"/>
+        <Button Margin="10,0,10,1" Content="Details" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="BtnDetails_Click" Height="21" MinHeight="21"/>
+
+        <Grid x:Name="InputBox" Visibility="Collapsed" ColumnSpan="2">
+            <Grid Background="Black" Opacity="0.5"/>
+            <Border
+                MinWidth="250"
+                Background="LightSteelBlue" 
+                BorderBrush="Black" 
+                BorderThickness="1" 
+                CornerRadius="0,5,0,5" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Margin="5" Text="Filter specific value:" FontWeight="Bold" FontFamily="Cambria" />
+                    <TextBox MinWidth="150" HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="InputTextBox"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button x:Name="YesButton" Margin="5" Content="Apply" Background="{x:Null}" Click="YesButton_Click"/>
+                        <Button x:Name="NoButton" Margin="5" Content="Clear" Background="{x:Null}" Click="NoButton_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

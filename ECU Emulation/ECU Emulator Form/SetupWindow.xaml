@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Data="clr-namespace:SerialComPort.Data;assembly=SerialComPort" xmlns:Data1="clr-namespace:EcuEmulator.Data;assembly=EcuEmulator"
     xmlns:converter="clr-namespace:EcuEmulatorForm.Converter"
     mc:Ignorable="d" x:Class="EcuEmulatorForm.SetupWindow"
-        Title="SetupWindow" Height="400" Width="523" Loaded="Window_Loaded" Closing="Window_Closing" Icon="vspc-icon-AllSize.ico">
+        Title="SetupWindow" Height="385" Width="523" Loaded="Window_Loaded" Closing="Window_Closing" Icon="vspc-icon-AllSize.ico">
     <Window.Resources>
         <CollectionViewSource x:Key="comSetupViewSource" d:DesignSource="{d:DesignInstance {x:Type Data:ComSetup}, CreateList=True}"/>
         <CollectionViewSource x:Key="ecuSetupViewSource" d:DesignSource="{d:DesignInstance {x:Type Data1:EcuSetup}, CreateList=True}"/>
@@ -12,9 +12,10 @@
         <converter:ByteArrayToHexConverter x:Key="ByteArrayToHex" />
     </Window.Resources>
     <Grid>
-        <GroupBox Header="COM Port" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="350" Width="237">
-            <Grid x:Name="gridComPort" VerticalAlignment="Top" Margin="10,10,-24.754,0" HorizontalAlignment="Left" DataContext="{StaticResource comSetupViewSource}">
+        <GroupBox Header="COM Port" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="350" Width="237">
+            <Grid x:Name="gridComPort" VerticalAlignment="Top" Margin="0,0,-24.754,0" HorizontalAlignment="Left" DataContext="{StaticResource comSetupViewSource}">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -52,7 +53,7 @@
                 <TextBox x:Name="timeOutMsTextBox" Width="120" VerticalAlignment="Center" Text="{Binding TimeOutMs, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="9" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Emulator" HorizontalAlignment="Left" Margin="252,10,0,0" VerticalAlignment="Top" Height="350" Width="263">
+        <GroupBox Header="Emulator" HorizontalAlignment="Left" Margin="242,0,0,0" VerticalAlignment="Top" Height="350" Width="263">
             <Grid x:Name="gridEcuSetup" VerticalAlignment="Top" Margin="10,10,0,0" HorizontalAlignment="Left" DataContext="{StaticResource ecuSetupViewSource}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -64,6 +65,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>                    
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -80,13 +82,15 @@
                 <Label VerticalAlignment="Center" Grid.Row="4" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="InitSequence:"/>
                 <TextBox x:Name="initSequenceTextBox" Width="120" VerticalAlignment="Center" Text="{Binding InitSequence, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteArrayToHex}}" Grid.Row="4" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
                 <Label VerticalAlignment="Center" Grid.Row="5" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="ErrorSequence:"/>
-                <TextBox x:Name="errorSequenceTextBox" Width="120" VerticalAlignment="Center" Text="{Binding ErrorSequence, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteArrayToHex}}" Grid.Row="5" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
-                <Label VerticalAlignment="Center" Grid.Row="6" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="Offset Min:"/>
-                <TextBox x:Name="offsetMinTextBox" Width="120" VerticalAlignment="Center" Text="{Binding OffsetMin, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="6" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
-                <Label VerticalAlignment="Center" Grid.Row="7" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="Offset Max:"/>
-                <TextBox x:Name="offsetMaxTextBox" Width="120" VerticalAlignment="Center" Text="{Binding OffsetMax, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="7" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
-                <Label VerticalAlignment="Center" Grid.Row="8" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="TimeOut Milisec.:"/>
-                <TextBox x:Name="timeOutMilisTextBox" Width="120" VerticalAlignment="Center" Text="{Binding TimeOutMilis, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="8" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
+                <TextBox x:Name="errorSequenceTextBox" Width="120" VerticalAlignment="Center" Text="{Binding ErrorSequence, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true, Converter={StaticResource ByteArrayToHex}}" Grid.Row="5" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>                
+                <Label VerticalAlignment="Center" Grid.Row="6" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="TimeOut Milisec.:"/>
+                <TextBox x:Name="timeOutMilisTextBox" Width="120" VerticalAlignment="Center" Text="{Binding TimeOutMilis, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="6" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
+                <Label VerticalAlignment="Center" Grid.Row="7" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="Diag. Needed:"/>
+                <CheckBox x:Name="diagNeededCheckBox" VerticalAlignment="Center" Grid.Row="7" Margin="3" IsChecked="{Binding DiagnosticNeeded, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" HorizontalAlignment="Left" Grid.Column="1" Content=""/>
+                <Label VerticalAlignment="Center" Grid.Row="8" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="Echo:"/>
+                <CheckBox x:Name="echoCheckBox" VerticalAlignment="Center" Grid.Row="8" Margin="3" IsChecked="{Binding Echo, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" HorizontalAlignment="Left" Grid.Column="1" Content=""/>
+                <Label VerticalAlignment="Center" Grid.Row="9" Margin="3" HorizontalAlignment="Left" Grid.Column="0" Content="Bike model:"/>
+                <ComboBox x:Name="bikeComboBox" Width="120" VerticalAlignment="Center" Text="{Binding Bike, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" Grid.Row="9" Margin="3" Height="23" HorizontalAlignment="Left" Grid.Column="1"/>
             </Grid>
         </GroupBox>
 

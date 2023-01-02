@@ -94,6 +94,8 @@ namespace SerialComPort
             try
             {
                 _comPort.Open();
+                _comPort.DiscardOutBuffer();
+                _comPort.DiscardInBuffer();
                 DisplayData(MessageTypes.Normal, "ComPort Opened");
                 return true;
             }
@@ -116,6 +118,8 @@ namespace SerialComPort
             if(_comPort.IsOpen)
                 try
                 {
+                    _comPort.DiscardOutBuffer();
+                    _comPort.DiscardInBuffer();
                     _comPort.Close();
                     DisplayData(MessageTypes.Normal, "Com Port Closed");
                     return true;
@@ -173,6 +177,26 @@ namespace SerialComPort
             return false;
         }
 
+        public bool Write(string command)
+        {
+            if (_comPort.IsOpen)
+                try
+                {                    
+                    _comPort.Write(command);
+                    DisplayData(MessageTypes.Outgoing, command);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _lastException = ex;
+                    DisplayData(MessageTypes.Error, ex.Message);
+                }
+            else
+                DisplayData(MessageTypes.Error, "ComPort not open!");
+
+            return false;
+        }
+
         #region ComPort Events
         void _comPort_PinChanged(object sender, SerialPinChangedEventArgs e)
         {
@@ -195,10 +219,36 @@ namespace SerialComPort
             //create a byte array to hold the awaiting data
             var comBuffer = new byte[bytes];
             //read the data and store it
+            //_comPort.Read(comBuffer, 0, bytes);
             _comPort.Read(comBuffer, 0, bytes);
 
             if (bytes == 0)
                 return;
+
+            //0x44 == D (Debuger)
+            //if (comBuffer[0].Equals(0x44))
+            //{
+            //    char[] delimiters = new char[] { '\r', '\n' };
+            //    string result = System.Text.Encoding.UTF8.GetString(comBuffer);
+            //    foreach (var part in result.Split(delimiters, StringSplitOptions.RemoveEmptyEntries))
+            //    {
+            //        if (part.StartsWith("D"))
+            //        {
+            //            var str = part.Remove(0, 1);
+            //            Messaging.WriteLine(str, Messaging.Types.Debug, Messaging.Caller.ComPort);
+            //            if (result.Contains(Environment.NewLine))
+            //                result = result.Remove(0, result.IndexOf('\n')+1);
+            //            else
+            //                result = string.Empty;
+            //        }
+
+            //        if (String.IsNullOrEmpty(result))
+            //            return;
+            //        else
+            //            comBuffer = System.Text.Encoding.UTF8.GetBytes(result);
+            //    }
+            //}
+            
             //display the data to the user
             var msg = Backend.Helper.Converter.ByteToHex(comBuffer);
 
@@ -216,6 +266,8 @@ namespace SerialComPort
         [STAThread]
         private void DisplayData(MessageTypes type, string data)
         {
+            if (String.IsNullOrEmpty(data))
+                return;
             Messaging.WriteLine(data, (Messaging.Types)type,Messaging.Caller.ComPort);
             
             if (InfoReceived != null)

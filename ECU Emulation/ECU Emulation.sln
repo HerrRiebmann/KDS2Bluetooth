@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ecu Emulator", "Ecu Emulator\Ecu Emulator.csproj", "{2D5B6FD2-C05E-4A16-8553-5CDE3E692FED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECU Emulator Form", "ECU Emulator Form\ECU Emulator Form.csproj", "{E2365FE9-E882-4B74-A6EB-B8F6D8681C6D}"
@@ -10,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{874FCDDB-3BF6-434C-99F0-68EF82730545}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ecu Emulator Test", "Ecu Emulator Test\Ecu Emulator Test.csproj", "{50EA49B4-D0B0-4B2A-A21B-DE3F6AB65D64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hex Calculator", "Hex Calculator\Hex Calculator.csproj", "{7B1087A6-A0F2-4172-BB42-F39922C6CC06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,8 +41,15 @@ Global
 		{50EA49B4-D0B0-4B2A-A21B-DE3F6AB65D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50EA49B4-D0B0-4B2A-A21B-DE3F6AB65D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50EA49B4-D0B0-4B2A-A21B-DE3F6AB65D64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B1087A6-A0F2-4172-BB42-F39922C6CC06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B1087A6-A0F2-4172-BB42-F39922C6CC06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B1087A6-A0F2-4172-BB42-F39922C6CC06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B1087A6-A0F2-4172-BB42-F39922C6CC06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5AB594D2-179D-43B9-951B-BFEDBA2B0E6E}
 	EndGlobalSection
 EndGlobal

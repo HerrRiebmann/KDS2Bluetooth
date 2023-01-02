@@ -5,20 +5,14 @@ namespace EcuEmulator.Data
 {
     public enum PidTypes
     {
-        //FuelSystemStatus = 3,
-        //CalculatedEngineLoadValue = 4,
-        //EngineCoolantTemperature = 5,
-        //FuelPressure = 10,
-        //RotationsPerMinute = 12,
-        //Speed = 13,
-        //IntakeAirTemperature = 15,
-        //ThrottleOpening = 17,
-        //BarometricPressure = 33,
-        //StartDiagnostic = 200,  //Undocumented!
-        //Gear = 201,             //Undocumented!
-        //AbsPressure = 202       //Undocumented!
         StartDiagnostic = 200,  //80 but Mode 10 (Not 21)
+        StopDiagnostic = 201,  //80 but Mode 20 (Not 21)
+        StartCommunication = 202,//81
+        StopCommunication = 203,//82
+        KeepAlive = 204, //3E
+        Custom = 300,
         PidList1to32 = 0,
+        ObdConformity = 1,
         StarterSwitch = 2,
         ThrottleOpening = 4,
         BarometricInletPressure = 5,

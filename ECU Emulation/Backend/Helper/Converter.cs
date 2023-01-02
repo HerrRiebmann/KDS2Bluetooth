@@ -50,7 +50,8 @@ namespace Backend.Helper
                 //return the converted value
                 return builder.ToString().ToUpper();
             }
-            return "ByteArray is Empty";
+            //return "ByteArray is Empty";
+            return string.Empty;
             //return "00";
         }
 
