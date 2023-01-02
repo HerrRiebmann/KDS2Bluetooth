@@ -4,6 +4,7 @@ Kawasaki Diagnostic Service Reader via Bluetooth
 Using an Arduino (*Nano*) to read parameter from a Kawasaki motorcycle by it´s diagnostic system.
 Requests can be submittet via bluetooth, by any ELM327 compatible device/application. Such as Android App [Torque Lite](https://play.google.com/store/apps/details?id=org.prowl.torque&hl=de), [Car Scanner ELM OBD2](https://play.google.com/store/apps/details?id=com.ovz.carscanner&hl=de), 
 action cameras like "Garmin Virb X / XE" or other solutions, which are able to communicate with an OBD II Bluetooth Adapter.
+For racetrack usage, I can recommend [Racechrono](https://racechrono.com/)
 
 # Update 2023/01/01
 My latest so called "Bike Diagnostic System" version for Kawasaki & Suzuki. It´s almost compatible to any ELM327 App and supports nearly any KDS and SDS bike.
