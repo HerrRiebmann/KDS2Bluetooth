@@ -136,6 +136,7 @@
         <Button Margin="10,0,0,1" Content="Remove Duplicates" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnDistinct_Click" Height="21" MinHeight="21"/>
         <Button Margin="150,0,0,1" Content="Incoming only" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnIncomingOnly_Click" Height="21" MinHeight="21"/>
         <Button Margin="250,0,10,1" Content="Cleanup File" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="BtnCleanup_Click" Height="21" MinHeight="21"/>
+        <Button Margin="10,0,100,1" Content="Graph" Grid.Column="1" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Click="BtnGraph_Click" Height="21" MinHeight="21"/>
         <Button Margin="10,0,10,1" Content="Details" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="BtnDetails_Click" Height="21" MinHeight="21"/>
 
         <Grid x:Name="InputBox" Visibility="Collapsed" ColumnSpan="2">
@@ -157,6 +158,6 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
-        </Grid>
+        </Grid>        
     </Grid>
 </Window>

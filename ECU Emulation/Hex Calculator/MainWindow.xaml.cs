@@ -17,7 +17,7 @@ namespace Hex_Calculator
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly string[] Extensions = { ".sds", ".sdt", ".kds", ".hds", ".xml", ".csv", ".txt", ".raw" };
+        private readonly string[] Extensions = { ".sds", ".sdt", ".kds", ".hds", ".xml", ".csv", ".txt", ".raw", ".pds" };
         DataEntries _dataEntries;
         private DetailView _detail;
         private string _currentFilename;
@@ -91,6 +91,8 @@ namespace Hex_Calculator
                     Import.LoadTxtData(file, ref _dataEntries);
                 else if (Path.GetExtension(file).Equals(".raw", StringComparison.CurrentCultureIgnoreCase))
                     Import.LoadRawData(file, ref _dataEntries);
+                else if (Path.GetExtension(file).Equals(".pds", StringComparison.CurrentCultureIgnoreCase))
+                    Import.LoadSDSData(file, ref _dataEntries);
                 else
                     Import.LoadHexData(file, ref _dataEntries);
                 IsEnabled = true;
@@ -111,7 +113,7 @@ namespace Hex_Calculator
             Filter.IncomingOnly(ref _dataEntries);            
         }
 
-        private void Row_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void Row_DoubleClick(object sender, RoutedEventArgs e)
         {
             var row = sender as DataGridRow;
             var entry = (DataEntry) row.Item;
@@ -163,6 +165,8 @@ namespace Hex_Calculator
                 _detail.ParentClosing = true;
                 _detail.Close();
             }
+            //Kill all graph windows:
+            Application.Current.Shutdown();            
         }
 
         private void BtnFilter_Click(object sender, RoutedEventArgs e)
@@ -177,6 +181,14 @@ namespace Hex_Calculator
                 return;
             var calcViewSource = (CollectionViewSource)FindResource("calcViewSource");
             calcViewSource.Filter += CalcViewSource_Filter;
+        }
+
+        private void BtnGraph_Click(object sender, RoutedEventArgs e)
+        {            
+            Graph.PlotViewer plotViewer = new Graph.PlotViewer();
+            plotViewer.FileName = Path.GetFileName(_currentFilename);
+            plotViewer.DataEntries = _dataEntries;            
+            plotViewer.Show();
         }
 
         private void NoButton_Click(object sender, RoutedEventArgs e)
