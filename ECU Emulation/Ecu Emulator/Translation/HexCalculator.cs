@@ -21,7 +21,7 @@ namespace EcuEmulator.Translation
         {
             try
             {
-                foreach (var hex in hexText.Split(' '))
+                foreach (var hex in hexText.TrimEnd().Split(' '))
                 {
                     var i = int.Parse(hex, NumberStyles.HexNumber);
                     if (i < 0 || i > 256)
