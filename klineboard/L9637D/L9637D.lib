@@ -1,0 +1,32 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#(c) SnapEDA 2016 (snapeda.com)
+#This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA) with Design Exception 1.0
+#
+# L9637D
+#
+DEF L9637D IC 0 40 Y Y 1 L N
+F0 "IC" -300 551 50 H V L BNN
+F1 "L9637D" -300 -500 50 H V L BNN
+F2 "SO08" 0 0 50 H I L BNN
+F3 "unknown" 0 0 50 H I L BNN
+F4 "L9637D" 0 0 50 H I L BNN
+F5 "" 0 0 50 H I L BNN
+F6 "56P8926" 0 0 50 H I L BNN
+DRAW
+P 2 0 0 10 -300 500 300 500 N
+P 2 0 0 10 300 500 300 -400 N
+P 2 0 0 10 300 -400 -300 -400 N
+P 2 0 0 10 -300 -400 -300 500 N
+X VS 7 -400 400 100 R 40 40 0 0 W 
+X VCC 3 400 400 100 L 40 40 0 0 W 
+X GND 5 400 -300 100 L 40 40 0 0 W 
+X K 6 -400 200 100 R 40 40 0 0 I 
+X LI 8 -400 -100 100 R 40 40 0 0 I 
+X TX 4 400 200 100 L 40 40 0 0 I 
+X RX 1 400 100 100 L 40 40 0 0 O 
+X LO 2 400 -100 100 L 40 40 0 0 O 
+ENDDRAW
+ENDDEF
+#
+# End Library
